@@ -1,0 +1,444 @@
+<!DOCTYPE html>
+
+<html lang="en">
+<head>
+<meta charset="utf-8"/>
+<title>cj cruz – personal trade tracker</title>
+<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet"/>
+<link href="css/styles.css" rel="stylesheet"/>
+<link href="css/style_2.css" rel="stylesheet"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" rel="stylesheet">
+
+</link>
+
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+
+
+
+  <link rel="stylesheet" href="css/cj-live-clock.css">
+</head>
+<body>
+<div class="container-fluid">
+<div class="layout-shell d-flex min-vh-20">
+<aside class="sidebar glass-sidebar d-flex flex-column">
+<button type="button" id="mobileSidebarClose" class="mobile-sidebar-close" aria-label="Close navigation menu" title="Close menu">×</button>
+<!-- Hamburger-to-Arrow Toggle (injected) -->
+<button aria-label="Toggle sidebar" class="hamburger-arrow" id="sidebarToggleArrow">
+<span class="bar top"></span>
+<span class="bar middle"></span>
+<span class="bar bottom"></span>
+</button>
+<div class="sidebar-profile text-center mb-3">
+<div class="sidebar-avatar-wrapper mx-auto" id="profileAvatarWrapper">
+<div class="sidebar-avatar-ring">
+<img alt="Profile photo" id="profileImage" src="data:image/svg+xml;utf8,%3Csvg%20xmlns%3D%22http%3A//www.w3.org/2000/svg%22%20width%3D%22128%22%20height%3D%22128%22%3E%0A%3Cdefs%3E%0A%20%20%3ClinearGradient%20id%3D%22g%22%20x1%3D%220%22%20x2%3D%221%22%20y1%3D%220%22%20y2%3D%221%22%3E%0A%20%20%20%20%3Cstop%20offset%3D%220%25%22%20stop-color%3D%22%236366f1%22/%3E%0A%20%20%20%20%3Cstop%20offset%3D%22100%25%22%20stop-color%3D%22%23a855f7%22/%3E%0A%20%20%3C/linearGradient%3E%0A%3C/defs%3E%0A%3Crect%20width%3D%22128%22%20height%3D%22128%22%20fill%3D%22url%28%23g%29%22/%3E%0A%3Ctext%20x%3D%2250%25%22%20y%3D%2254%25%22%20text-anchor%3D%22middle%22%20font-size%3D%2252%22%20fill%3D%22%23f9fafb%22%0A%20%20%20%20%20%20font-family%3D%22system-ui%2C%20-apple-system%2C%20BlinkMacSystemFont%2C%20sans-serif%22%3ECJ%3C/text%3E%0A%3C/svg%3E"/>
+</div>
+</div>
+<div class="sidebar-name" id="profileName">Trader</div>
+<div class="sidebar-profile-hint">Click name or photo to change</div>
+<input accept="image/*" hidden="" id="profileImageInput" type="file"/>
+</div>
+<nav class="nav flex-column sidebar-nav">
+<a class="nav-link " href="index.html">
+<span class="icon"><i class="fa-solid fa-chart-line"></i></span>
+<span>Dashboard</span>
+</a>
+<a class="nav-link" href="add_plan_trade.html">
+<span class="icon"><i class="fa-solid fa-plus"></i></span>
+<span>Add/ Plan Trade</span>
+</a>
+
+<a class="nav-link active" href="market_snapshot.html">
+<span class="icon"><i class="fa-solid fa-chart-area"></i></span>
+<span>Market Snapshot</span>
+</a>
+<a class="nav-link" href="depsit_withdrawl.html">
+<span class="icon"><i class="fa-solid fa-wallet"></i></span>
+<span>Deposits / Withdrawals</span>
+</a>
+<a class="nav-link" href="fx_mcx_gap.html">
+<span class="icon"><i class="fa-solid fa-arrows-left-right"></i></span>
+<span>FX → MCX Gap Mapper</span>
+</a>
+<a class="nav-link" href="calculations.html">
+<span class="icon"><i class="fa-solid fa-newspaper"></i></span>
+<span>Calculations</span>
+</a>
+<a class="nav-link" href="srb.html">
+<span class="icon"><i class="fa-solid fa-newspaper"></i></span>
+<span>SRB</span>
+</a>
+<a class="nav-link" href="fh_sh_Strategy.html">
+<span class="icon"><i class="fa-solid fa-newspaper"></i></span>
+<span>FH/ SH</span>
+</a>
+</nav>
+<div class="sidebar-footer">
+<div class="sidebar-backup-box">
+<div class="backup-label">Backup / Restore</div>
+<button class="btn btn-outline btn-xs w-100 mb-1" id="backupJsonBtn">
+          ⬇ Backup JSON
+        </button>
+<button class="btn btn-outline btn-xs w-100" id="restoreJsonBtn">
+          ⬆ Restore JSON
+        </button>
+<input accept="application/json" hidden="" id="restoreJsonInput" type="file"/>
+<div class="version-text">local storage</div>
+</div>
+</div>
+</aside><div class="sidebar-backdrop" aria-hidden="true"></div></div>
+<div class="flex-grow-1 app-main-scroll">
+<div class="mac-window">
+<div class="mac-titlebar">
+<button id="menuToggle" class="mobile-menu-btn" type="button" aria-label="Open navigation menu" aria-expanded="false"><span aria-hidden="true">☰</span></button>
+
+<div class="mac-traffic-lights">
+<span class="mac-dot mac-close"></span>
+<span class="mac-dot mac-minimize"></span>
+<span class="mac-dot mac-fullscreen"></span>
+</div>
+
+<div class="mac-title">cj cruz – Market Snapshots</div>
+<div id="cjLiveClockDisplay" role="timer" aria-label="Current time in India" aria-live="off">--:--:-- -- IST</div>
+<div aria-label="Theme appearance selector" class="mac-theme-toggle">
+<button class="mac-theme-btn" id="themeLightBtn" type="button">☀️ Light</button>
+<button class="mac-theme-btn" id="themeDarkBtn" type="button">🌙 Dark</button>
+<button class="mac-theme-btn" id="themeAutoBtn" type="button">🧠 Auto</button>
+</div>
+</div>
+<div class="mac-window-content">
+<div class="app-shell">
+
+
+<!-- Top balances -->
+
+<main class="main-grid">
+<!-- ROW 1: Add Trade (left) -->
+
+<!-- ROW 1: Plan Trade (right) -->
+
+<!-- ROW 2: Trades & Reports (full width) -->
+
+<!-- ROW 3: Market Snapshot (left) -->
+<section class="card full-width-section" id="section-snapshot">
+<div class="card-header-row">
+<div>
+<div class="section-label">Manual logging</div>
+<div class="card-title">Market Open &amp; Close</div>
+</div>
+<div class="snapshot-header-right">
+<span class="tag-pill">Symbol · Open · Close · Trend</span>
+</div>
+</div>
+<!-- Form: Date / Session / Symbol / Trend / Prices -->
+<form class="snapshot-form-compact" id="snapshotForm">
+<div class="snapshot-layout">
+<!-- Top row: Date · Session · Symbol · Trend -->
+<div class="snapshot-grid snapshot-grid-top">
+<div class="snapshot-field">
+<label for="snapshotDate">Date</label>
+<input id="snapshotDate" name="snapshotDate" required="" type="date"/>
+</div>
+<div class="snapshot-field">
+<label for="snapshotSession">Session</label>
+<select id="snapshotSession" name="snapshotSession">
+<option value="full">Full day</option>
+<option value="first">1st half</option>
+<option value="second">2nd half</option>
+</select>
+</div>
+<div class="snapshot-field">
+<label for="snapshotSymbolType">Symbol</label>
+<select id="snapshotSymbolType" name="snapshotSymbolType" required="">
+<option value="Gold">Gold</option>
+<option value="Silver">Silver</option>
+<option value="Nifty 50">Nifty 50</option>
+<option value="Bank Nifty">Bank Nifty</option>
+<option value="Custom">Custom</option>
+</select>
+</div>
+<div class="snapshot-field snapshot-trend-field">
+<label>Trend</label>
+<span class="snapshot-trend-badge trend-sideways" id="snapshotTrendDisplay">
+              Sideways
+            </span>
+</div>
+</div>
+<!-- Middle row: (optional) custom symbol + Open / Close -->
+<div class="snapshot-grid snapshot-grid-middle">
+<div class="snapshot-field snapshot-field-full inline-style-1" id="snapshotCustomSymbolRow">
+<label for="snapshotSymbolCustom">Custom Symbol</label>
+<input id="snapshotSymbolCustom" name="snapshotSymbolCustom" type="text"/>
+</div>
+<div class="snapshot-field">
+<label for="snapshotOpen">Open</label>
+<input id="snapshotOpen" name="snapshotOpen" required="" step="0.01" type="number"/>
+</div>
+<div class="snapshot-field">
+<label for="snapshotClose">Close</label>
+<input id="snapshotClose" name="snapshotClose" required="" step="0.01" type="number"/>
+</div>
+</div>
+<!-- Save action -->
+<div class="snapshot-actions snapshot-btn-row">
+<button class="btn btn-primary btn-sm snapshot-save-btn" type="submit">
+            Save Snapshot
+          </button>
+</div>
+</div>
+</form>
+<!-- From / To filters + export buttons -->
+<div class="export-row snapshot-export-row">
+<div class="range-row">
+<div class="snapshot-field">
+<label for="snapshotFromDate">From</label>
+<input id="snapshotFromDate" type="date"/>
+</div>
+<div class="snapshot-field">
+<label for="snapshotToDate">To</label>
+<input id="snapshotToDate" type="date"/>
+</div>
+</div>
+<div class="export-group">
+<button class="btn btn-outline btn-xs" id="snapshotExportCSV" type="button">
+          Entries CSV
+        </button>
+<button class="btn btn-outline btn-xs" id="snapshotExportPDF" type="button">
+          Entries PDF
+        </button>
+<button class="btn btn-outline btn-xs" id="snapshotSummaryExportCSV" type="button">
+          Summary CSV
+        </button>
+<button class="btn btn-outline btn-xs" id="snapshotSummaryExportPDF" type="button">
+          Summary PDF
+        </button>
+</div>
+</div>
+<!-- Snapshot Entries / Daily Summary tabs -->
+<div class="snapshot-view-toggle inline-style-11">
+<button class="btn btn-xs btn-primary" id="snapshotViewEntriesBtn" type="button">
+        Snapshot Entries
+      </button>
+<button class="btn btn-xs btn-outline" id="snapshotViewSummaryBtn" type="button">
+        Daily Summary
+      </button>
+</div>
+<!-- Table area -->
+
+
+<div class="snapshot-table-container">
+<div class="snapshot-table-wrapper" id="snapshotEntriesWrapper">
+<table id="snapshotTable">
+<thead>
+<tr>
+<th data-type="date">Date <span class="sort-indicator">↕</span></th>
+<th data-type="string">Symbol <span class="sort-indicator">↕</span></th>
+<th data-type="string">Session <span class="sort-indicator">↕</span></th>
+<th data-type="number">Open <span class="sort-indicator">↕</span></th>
+<th data-type="number">Close <span class="sort-indicator">↕</span></th>
+<th data-type="string">Trend <span class="sort-indicator">↕</span></th>
+<th>Actions</th>
+</tr>
+</thead>
+<tbody></tbody>
+</table>
+</div>
+<div class="snapshot-table-wrapper inline-style-12" id="snapshotSummaryWrapper">
+<table id="snapshotSummaryTable">
+<thead>
+<tr>
+<th>Date</th>
+<th>Symbol</th>
+<th>O → C</th>
+<th>1st Half</th>
+<th>2nd Half</th>
+<th>Day Trend</th>
+</tr>
+</thead>
+<tbody></tbody>
+</table>
+</div>
+</div>
+</section>
+<!-- ROW 3: Deposits / Withdrawals (right) -->
+
+
+<!-- ROW 4: Equity Curve & Stats (full width) -->
+
+</main>
+<div class="footer-row">
+<div>Data lives only in your browser (localStorage).</div>
+<div class="footer-row-right">
+<button class="btn btn-danger btn-xs" id="resetAllBtn" type="button">Reset all data</button>
+</div>
+</div>
+</div>
+</div>
+</div>
+<!-- Chart.js CDN -->
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script defer="" src="js/app.js"></script>
+</div>
+<!-- Trades Calendar: per-day details popup -->
+
+<!-- Balance edit modal (Main / Available / Manual) -->
+<div class="cj-password-backdrop" id="balanceEditBackdrop">
+<div class="cj-password-modal">
+<div class="cj-password-header">
+<div class="cj-password-title" id="balanceEditTitle">Update Balance</div>
+<div class="cj-password-subtitle" id="balanceEditSubtitle">
+        Enter the new value.
+      </div>
+</div>
+<form id="balanceEditForm">
+<label class="cj-password-label" for="balanceEditInput">
+<span id="balanceEditLabelText">New value</span>
+</label>
+<input autocomplete="off" class="cj-password-input" id="balanceEditInput" step="0.01" type="number"/>
+<div class="cj-password-error" id="balanceEditError"></div>
+<div class="cj-password-actions">
+<button class="btn btn-outline btn-sm" id="balanceEditCancel" type="button">
+          Cancel
+        </button>
+<button class="btn btn-primary btn-sm" id="balanceEditSubmit" type="submit">
+          Update
+        </button>
+</div>
+</form>
+</div>
+</div>
+<!-- Password modal for secure actions -->
+<div class="cj-password-backdrop" id="passwordModalBackdrop">
+<div class="cj-password-modal">
+<div class="cj-password-header">
+<div class="cj-password-title" id="passwordModalTitle">Main Balance</div>
+<div class="cj-password-subtitle" id="passwordModalSubtitle">
+        Password required to continue.
+      </div>
+</div>
+<form id="passwordModalForm">
+<label class="cj-password-label" for="passwordModalInput">
+        Enter password
+      </label>
+<div class="cj-password-hint-row">
+<span class="cj-password-hint-label">Password</span>
+<input class="cj-password-view" id="passwordModalView" readonly="" type="text"/>
+<button class="btn btn-outline btn-xs cj-password-copy-btn" id="passwordModalCopy" type="button">
+          Copy
+        </button>
+</div>
+<input autocomplete="off" class="cj-password-input" id="passwordModalInput" type="text"/>
+<div class="cj-password-error" id="passwordModalError"></div>
+<div class="cj-password-actions">
+<button class="btn btn-outline btn-sm" id="passwordModalCancel" type="button">
+          Cancel
+        </button>
+<button class="btn btn-primary btn-sm" id="passwordModalSubmit" type="submit">
+          Confirm
+        </button>
+</div>
+</form>
+</div>
+</div>
+<!-- Daily Inspiration popup (once per day) -->
+
+<div class="cj-toast-container" id="toastContainer"></div>
+<!-- FX → MCX Gap Password Modal -->
+
+
+</div>
+
+
+
+
+<!-- Trades Full Preview Popup (macOS style) -->
+<!-- Trades Full Preview Popup -->
+<div id="tradesPreviewBackdrop" class="mac-popup-backdrop">
+  <div class="mac-popup">
+    <div class="mac-popup-header">
+      <div class="mac-traffic-lights">
+        <span class="mac-dot mac-close" id="tradesPopupClose"></span>
+        <span class="mac-dot mac-minimize"></span>
+        <span class="mac-dot mac-fullscreen"></span>
+      </div>
+
+      <div class="mac-popup-title">Trades – Full Preview</div>
+
+      <button
+        type="button"
+        id="tradesPopupCloseRight"
+        class="mac-popup-close-btn"
+        aria-label="Close">
+        ✕
+      </button>
+    </div>
+
+    <div class="mac-popup-body">
+      <div id="tradesPopupContent"></div>
+    </div>
+  </div>
+</div>
+
+
+
+
+
+
+<div class="mac-popup-backdrop" id="tradesPopupBackdrop">
+  <div class="mac-popup">
+    <div class="mac-popup-header">
+      <div class="mac-traffic-lights"></div>
+      <div class="mac-popup-title">Trades – Full Preview</div>
+      <button id="tradesPopupCloseBtn" class="mac-popup-close-btn">×</button>
+    </div>
+    <div class="mac-popup-body">
+      <div id="tradesPopupMount"></div>
+    </div>
+  </div>
+</div>
+
+<script src="js/commodity-excel-engine.js" defer></script>
+<script>
+  function applyTrendBadges() {
+    const rows = document.querySelectorAll("#snapshotTable tbody tr");
+
+    rows.forEach(row => {
+      const trendCell = row.children[5]; // TREND column
+
+      if (!trendCell) return;
+
+      // Prevent double processing
+      if (trendCell.querySelector(".badge-bullish, .badge-bearish")) return;
+
+      const trend = trendCell.textContent.trim();
+
+      if (trend === "Buy") {
+        trendCell.innerHTML = '<span class="badge-bullish">Buy</span>';
+      } else if (trend === "Sell") {
+        trendCell.innerHTML = '<span class="badge-bearish">Sell</span>';
+      }
+    });
+  }
+
+  const observer = new MutationObserver(() => {
+    applyTrendBadges();
+  });
+
+  window.addEventListener("DOMContentLoaded", () => {
+    const tbody = document.querySelector("#snapshotTable tbody");
+    if (!tbody) return;
+
+    observer.observe(tbody, { childList: true, subtree: true });
+
+    // initial run
+    applyTrendBadges();
+  });
+</script>
+  <script src="js/cj-live-clock.js" defer></script>
+
+<script defer src="js/mobile-nav-fix.js"></script>
+</body>
+</html>

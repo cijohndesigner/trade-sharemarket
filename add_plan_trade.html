@@ -1,0 +1,517 @@
+<!DOCTYPE html>
+
+<html lang="en">
+<head>
+<meta charset="utf-8"/>
+<title>cj cruz – personal trade tracker</title>
+<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet"/>
+<link href="css/styles.css" rel="stylesheet"/>
+<link href="css/style_2.css" rel="stylesheet"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" rel="stylesheet">
+</link>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+
+  <link rel="stylesheet" href="css/cj-live-clock.css">
+</head>
+<body>
+<div class="container-fluid">
+<div class="layout-shell d-flex min-vh-20">
+<aside class="sidebar glass-sidebar d-flex flex-column">
+<button type="button" id="mobileSidebarClose" class="mobile-sidebar-close" aria-label="Close navigation menu" title="Close menu">×</button>
+<!-- Hamburger-to-Arrow Toggle (injected) -->
+<button aria-label="Toggle sidebar" class="hamburger-arrow" id="sidebarToggleArrow">
+<span class="bar top"></span>
+<span class="bar middle"></span>
+<span class="bar bottom"></span>
+</button>
+<div class="sidebar-profile text-center mb-3">
+<div class="sidebar-avatar-wrapper mx-auto" id="profileAvatarWrapper">
+<div class="sidebar-avatar-ring">
+<img alt="Profile photo" id="profileImage" src="data:image/svg+xml;utf8,%3Csvg%20xmlns%3D%22http%3A//www.w3.org/2000/svg%22%20width%3D%22128%22%20height%3D%22128%22%3E%0A%3Cdefs%3E%0A%20%20%3ClinearGradient%20id%3D%22g%22%20x1%3D%220%22%20x2%3D%221%22%20y1%3D%220%22%20y2%3D%221%22%3E%0A%20%20%20%20%3Cstop%20offset%3D%220%25%22%20stop-color%3D%22%236366f1%22/%3E%0A%20%20%20%20%3Cstop%20offset%3D%22100%25%22%20stop-color%3D%22%23a855f7%22/%3E%0A%20%20%3C/linearGradient%3E%0A%3C/defs%3E%0A%3Crect%20width%3D%22128%22%20height%3D%22128%22%20fill%3D%22url%28%23g%29%22/%3E%0A%3Ctext%20x%3D%2250%25%22%20y%3D%2254%25%22%20text-anchor%3D%22middle%22%20font-size%3D%2252%22%20fill%3D%22%23f9fafb%22%0A%20%20%20%20%20%20font-family%3D%22system-ui%2C%20-apple-system%2C%20BlinkMacSystemFont%2C%20sans-serif%22%3ECJ%3C/text%3E%0A%3C/svg%3E"/>
+</div>
+</div>
+<div class="sidebar-name" id="profileName">Trader</div>
+<div class="sidebar-profile-hint">Click name or photo to change</div>
+<input accept="image/*" hidden="" id="profileImageInput" type="file"/>
+</div>
+<nav class="nav flex-column sidebar-nav">
+<a class="nav-link " href="index.html">
+<span class="icon"><i class="fa-solid fa-chart-line"></i></span>
+<span>Dashboard</span>
+</a>
+<a class="nav-link active" href="add_plan_trade.html">
+<span class="icon"><i class="fa-solid fa-plus"></i></span>
+<span>Add/ Plan Trade</span>
+</a>
+
+<a class="nav-link" href="market_snapshot.html">
+<span class="icon"><i class="fa-solid fa-chart-area"></i></span>
+<span>Market Snapshot</span>
+</a>
+<a class="nav-link" href="depsit_withdrawl.html">
+<span class="icon"><i class="fa-solid fa-wallet"></i></span>
+<span>Deposits / Withdrawals</span>
+</a>
+<a class="nav-link" href="fx_mcx_gap.html">
+<span class="icon"><i class="fa-solid fa-arrows-left-right"></i></span>
+<span>FX → MCX Gap Mapper</span>
+</a>
+<a class="nav-link" href="calculations.html">
+<span class="icon"><i class="fa-solid fa-newspaper"></i></span>
+<span>Calculations</span>
+</a>
+<a class="nav-link" href="srb.html">
+<span class="icon"><i class="fa-solid fa-newspaper"></i></span>
+<span>SRB</span>
+</a>
+<a class="nav-link" href="fh_sh_Strategy.html">
+<span class="icon"><i class="fa-solid fa-newspaper"></i></span>
+<span>FH/ SH</span>
+</a>
+</nav>
+<div class="sidebar-footer">
+<div class="sidebar-backup-box">
+<div class="backup-label">Backup / Restore</div>
+<button class="btn btn-outline btn-xs w-100 mb-1" id="backupJsonBtn">
+          ⬇ Backup JSON
+        </button>
+<button class="btn btn-outline btn-xs w-100" id="restoreJsonBtn">
+          ⬆ Restore JSON
+        </button>
+<input accept="application/json" hidden="" id="restoreJsonInput" type="file"/>
+<div class="version-text">local storage</div>
+</div>
+</div>
+</aside><div class="sidebar-backdrop" aria-hidden="true"></div></div>
+<div class="flex-grow-1 app-main-scroll">
+<div class="mac-window">
+<div class="mac-titlebar">
+<button id="menuToggle" class="mobile-menu-btn" type="button" aria-label="Open navigation menu" aria-expanded="false"><span aria-hidden="true">☰</span></button>
+
+<div class="mac-traffic-lights">
+<span class="mac-dot mac-close"></span>
+<span class="mac-dot mac-minimize"></span>
+<span class="mac-dot mac-fullscreen"></span>
+</div>
+
+<div class="mac-title">cj cruz – Add Plan</div>
+<div id="cjLiveClockDisplay" role="timer" aria-label="Current time in India" aria-live="off">--:--:-- -- IST</div>
+<div aria-label="Theme appearance selector" class="mac-theme-toggle">
+<button class="mac-theme-btn" id="themeLightBtn" type="button">☀️ Light</button>
+<button class="mac-theme-btn" id="themeDarkBtn" type="button">🌙 Dark</button>
+<button class="mac-theme-btn" id="themeAutoBtn" type="button">🧠 Auto</button>
+</div>
+</div>
+<div class="mac-window-content">
+<div class="app-shell">
+
+
+<!-- Top balances -->
+
+<main class="main-grid">
+<!-- ROW 1: Add Trade (left) -->
+<section class="card" id="section-add-trade">
+<div class="card-header-row">
+<div>
+<div class="section-label">Trade logging</div>
+<div class="card-title">Add Trade</div>
+</div>
+<span class="tag-pill">Trades · P/L preview</span>
+</div>
+<form id="tradeForm">
+<div class="form-grid">
+<div class="form-row">
+<label for="tradeDate">Date</label>
+<input id="tradeDate" name="tradeDate" required="" type="date"/>
+</div>
+<div class="form-row">
+<label for="tradeSymbol">Symbol</label>
+<select id="tradeSymbol" name="tradeSymbol" required="">
+<option value="Gold">Gold</option>
+<option value="Silver">Silver</option>
+<option value="Nifty 50">Nifty 50</option>
+<option value="Bank Nifty">Bank Nifty</option>
+<option value="Custom">Custom</option>
+</select>
+</div>
+<div class="form-row inline-style-1" id="customSymbolRow">
+<label for="customSymbol">Custom Symbol</label>
+<input id="customSymbol" name="customSymbol" type="text"/>
+</div>
+<div class="form-row">
+<label for="tradeSide">Side</label>
+<select id="tradeSide" name="tradeSide" required="">
+<option value="Buy">Buy</option>
+<option value="Sell">Sell</option>
+</select>
+</div>
+<div class="form-row">
+<label for="tradeQuantity">Quantity</label>
+<input id="tradeQuantity" min="0" name="tradeQuantity" required="" step="1" type="number"/>
+</div>
+<div class="form-row">
+<label for="buyPrice">Buy Price</label>
+<input id="buyPrice" name="buyPrice" step="0.01" type="number"/>
+</div>
+<div class="form-row">
+<label for="sellPrice">Sell Price</label>
+<input id="sellPrice" name="sellPrice" step="0.01" type="number"/>
+</div>
+<div class="form-row">
+<label for="brokerage">Brokerage / Charges</label>
+<input id="brokerage" name="brokerage" step="0.01" type="number" value="0"/>
+</div>
+<div class="form-row inline-style-2">
+<label for="tradeNotes">Notes</label>
+<textarea id="tradeNotes" name="tradeNotes"></textarea>
+</div>
+</div>
+<div class="inline-input-group inline-style-3">
+<div class="form-row inline-style-4">
+<span class="muted">Check P/L before saving trade.</span>
+<span class="preview-pl neutral" id="previewPL">P/L: ₹0.00</span>
+</div>
+<button class="btn btn-outline btn-sm" id="previewPLBtn" type="button">Preview P/L</button>
+<button class="btn btn-primary btn-sm" type="submit">Save Trade</button>
+</div>
+</form>
+</section>
+<!-- ROW 1: Plan Trade (right) -->
+<section class="card" id="section-plan-trade">
+<div class="card-header-row">
+<div>
+<div class="section-label">On-Trade</div>
+<div class="card-title">Plan Trade (R:R)</div>
+</div>
+<span class="tag-pill">Risk · Reward · Size</span>
+</div>
+<!-- 2 neat rows: row1 (symbol/side/qty), row2 (entry + distance + SL + target) -->
+<div class="plan-grid">
+<div class="plan-row">
+<div class="form-row">
+<label for="planSymbol">Symbol</label>
+<select id="planSymbol" name="planSymbol">
+<option value="Gold">Gold</option>
+<option value="Silver">Silver</option>
+<option value="Nifty 50">Nifty 50</option>
+<option value="Bank Nifty">Bank Nifty</option>
+<option value="Custom">Custom</option>
+</select>
+</div>
+<div class="form-row">
+<label for="planSide">Side</label>
+<select id="planSide" name="planSide">
+<option value="Buy">Buy</option>
+<option value="Sell">Sell</option>
+</select>
+</div>
+<div class="form-row">
+<label for="planQuantity">Quantity</label>
+<input id="planQuantity" min="0" name="planQuantity" step="1" type="number"/>
+</div>
+</div>
+<div class="plan-row">
+<div class="form-row">
+<label for="planEntry">Entry</label>
+<input id="planEntry" name="planEntry" step="0.01" type="number"/>
+</div>
+<div class="form-row">
+<label for="planDistance">Target: <span id="outTarget">—</span> (points)</label>
+<input id="planDistance" name="planDistance" step="0.01" type="number"/>
+</div>
+<div class="form-row">
+<label for="planStop">Stop Loss</label>
+<input id="planStop" name="planStop" step="0.01" type="number"/>
+</div>
+<div class="form-row">
+<label for="planTarget">Target</label>
+<input id="planTarget" name="planTarget" step="0.01" type="number"/>
+</div>
+</div>
+</div>
+<div class="plan-summary-row">
+<div class="plan-summary-block">
+<div class="tiny-text">Per lot</div>
+<div class="plan-summary-values">
+<span class="plan-chip">
+            Risk:
+            <span id="planRiskPerLot">₹0.00</span>
+</span>
+<span class="plan-chip">
+            Reward:
+            <span id="planRewardPerLot">₹0.00</span>
+</span>
+<span class="plan-chip">
+            R:R
+            <span id="planRR">0.0</span>
+</span>
+</div>
+</div>
+<div class="plan-summary-block">
+<div class="tiny-text">Total (all quantity)</div>
+<div class="plan-summary-values">
+<span class="plan-chip">
+            Total risk:
+            <span id="planTotalRisk">₹0.00</span>
+</span>
+<span class="plan-chip">
+            Total reward:
+            <span id="planTotalReward">₹0.00</span>
+</span>
+</div>
+</div>
+</div>
+<div class="inline-input-group inline-style-5">
+<span class="tiny-text" id="planSummaryLabel">
+        Type values or distance to see the risk / reward profile for this
+        idea.
+      </span>
+<button class="btn btn-outline btn-xs" id="planClearBtn" type="button">
+        Clear
+      </button>
+</div>
+</section>
+<!-- ROW 2: Trades & Reports (full width) -->
+<section class="card full-width-section" id="section-trades">
+  <div id="tradesContentWrapper">
+    <!-- EVERYTHING inside trades goes here (header, filters, table, export row) -->
+  </div>
+<div class="card-header-row">
+<div>
+<div class="card-title d-flex align-items-center gap-2">
+  <span>Trades Details</span>
+
+  <!-- Full preview button (same style as app chips) -->
+  <button
+    type="button"
+    id="tradesFullPreviewBtn"
+    class="filter-chip"
+    title="Full preview">
+    ⛶
+  </button>
+</div>
+</div>
+<div class="filter-group" id="tradeFilterGroup">
+<button class="filter-chip active" data-filter="all" type="button">All</button>
+<button class="filter-chip" data-filter="today" type="button">Today</button>
+<button class="filter-chip" data-filter="week" type="button">This Week</button>
+<button class="filter-chip" data-filter="month" type="button">This Month</button>
+</div>
+</div>
+<div class="extra-filters-row">
+<div class="extra-filter-field">
+<div class="extra-filter-label">Symbol</div>
+<select class="extra-filter-input" id="tradeFilterSymbol">
+<option value="">All symbols</option>
+<option value="Gold">Gold</option>
+<option value="Silver">Silver</option>
+<option value="Nifty 50">Nifty 50</option>
+<option value="Bank Nifty">Bank Nifty</option>
+<option value="Custom">Custom</option>
+</select>
+</div>
+<div class="extra-filter-field inline-style-6">
+<div class="extra-filter-label">Side</div>
+<select class="extra-filter-input" id="tradeFilterSide">
+<option value="">All</option>
+<option value="Buy">Buy</option>
+<option value="Sell">Sell</option>
+</select>
+</div>
+<div class="extra-filter-field inline-style-6">
+<div class="extra-filter-label">Income</div>
+<select id="tradeFilterIncome" class="extra-filter-input" id="tradeFilterSide">
+<option value="all">All</option>
+<option value="profit">Profit</option>
+<option value="loss">Loss</option>
+</select>
+</div>
+<div class="extra-filter-field inline-style-6">
+<div class="extra-filter-label">Min P/L</div>
+<input class="extra-filter-input" id="tradeFilterMinPL" step="0.01" type="number"/>
+</div>
+<div class="extra-filter-field inline-style-6">
+<div class="extra-filter-label">Max P/L</div>
+<input class="extra-filter-input" id="tradeFilterMaxPL" step="0.01" type="number"/>
+</div>
+<div>
+<button class="btn btn-outline btn-xs" id="tradeFilterClearBtn" type="button">
+          Clear filters
+        </button>
+</div>
+</div>
+<div class="inline-style-5">
+<div class="table-wrapper">
+<table id="tradesTable">
+<thead>
+<tr>
+<th data-type="date">Date <span class="sort-indicator">↕</span></th>
+<th data-type="string">Symbol <span class="sort-indicator">↕</span></th>
+<th data-type="string">Side <span class="sort-indicator">↕</span></th>
+<th data-type="number">Qty <span class="sort-indicator">↕</span></th>
+<th data-type="number">Buy <span class="sort-indicator">↕</span></th>
+<th data-type="number">Sell <span class="sort-indicator">↕</span></th>
+<th data-type="number">Charges <span class="sort-indicator">↕</span></th>
+<th data-type="number">P/L <span class="sort-indicator">↕</span></th>
+<th data-type="string">Notes <span class="sort-indicator">↕</span></th>
+<th>Actions</th>
+</tr>
+</thead>
+<tbody></tbody>
+</table>
+</div>
+</div>
+<div class="range-row inline-style-7">
+<div class="extra-filter-field inline-style-8">
+<div class="extra-filter-label">From date</div>
+<input class="extra-filter-input" id="tradesFromDate" type="date"/>
+</div>
+<div class="extra-filter-field inline-style-8">
+<div class="extra-filter-label">To date</div>
+<input class="extra-filter-input" id="tradesToDate" type="date"/>
+</div>
+<div class="extra-filter-field inline-style-9">
+<button class="btn btn-outline btn-xs inline-style-10" id="tradesDateResetBtn" type="button">
+          Reset dates
+        </button>
+</div>
+</div>
+<div class="export-row">
+<div class="tiny-text">
+        Export only includes executed trades after current filters.
+      </div>
+<div class="export-group">
+<button class="btn btn-outline btn-xs" id="tradesExportCSV" type="button">Export CSV</button>
+<button class="btn btn-outline btn-xs" id="tradesExportPDF" type="button">Export PDF</button>
+</div>
+</div>
+</section>
+<!-- ROW 3: Market Snapshot (left) -->
+
+<!-- ROW 3: Deposits / Withdrawals (right) -->
+
+<!-- ROW 3b: Trades Calendar (daily Buy / Sell view) -->
+
+<!-- ROW 4.5: FX → MCX Gap Mapper (full width, before Morning prep) -->
+
+<!-- ROW 5: Gold / Silver Morning News (full width) -->
+
+<!-- ROW 4: Equity Curve & Stats (full width) -->
+
+</main>
+<div class="footer-row">
+<div>Data lives only in your browser (localStorage).</div>
+<div class="footer-row-right">
+<button class="btn btn-danger btn-xs" id="resetAllBtn" type="button">Reset all data</button>
+</div>
+</div>
+</div>
+</div>
+</div>
+<!-- Chart.js CDN -->
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script defer="" src="js/app.js"></script>
+</div>
+<!-- Trades Calendar: per-day details popup -->
+
+<!-- Balance edit modal (Main / Available / Manual) -->
+
+<!-- Password modal for secure actions -->
+<div class="cj-password-backdrop" id="passwordModalBackdrop">
+<div class="cj-password-modal">
+<div class="cj-password-header">
+<div class="cj-password-title" id="passwordModalTitle">Main Balance</div>
+<div class="cj-password-subtitle" id="passwordModalSubtitle">
+        Password required to continue.
+      </div>
+</div>
+<form id="passwordModalForm">
+<label class="cj-password-label" for="passwordModalInput">
+        Enter password
+      </label>
+<div class="cj-password-hint-row">
+<span class="cj-password-hint-label">Password</span>
+<input class="cj-password-view" id="passwordModalView" readonly="" type="text"/>
+<button class="btn btn-outline btn-xs cj-password-copy-btn" id="passwordModalCopy" type="button">
+          Copy
+        </button>
+</div>
+<input autocomplete="off" class="cj-password-input" id="passwordModalInput" type="text"/>
+<div class="cj-password-error" id="passwordModalError"></div>
+<div class="cj-password-actions">
+<button class="btn btn-outline btn-sm" id="passwordModalCancel" type="button">
+          Cancel
+        </button>
+<button class="btn btn-primary btn-sm" id="passwordModalSubmit" type="submit">
+          Confirm
+        </button>
+</div>
+</form>
+</div>
+</div>
+<!-- Daily Inspiration popup (once per day) -->
+
+<div class="cj-toast-container" id="toastContainer"></div>
+<!-- FX → MCX Gap Password Modal -->
+
+
+</div>
+
+
+
+
+<!-- Trades Full Preview Popup (macOS style) -->
+<!-- Trades Full Preview Popup -->
+<div id="tradesPreviewBackdrop" class="mac-popup-backdrop">
+  <div class="mac-popup">
+    <div class="mac-popup-header">
+      <div class="mac-traffic-lights">
+        <span class="mac-dot mac-close" id="tradesPopupClose"></span>
+        <span class="mac-dot mac-minimize"></span>
+        <span class="mac-dot mac-fullscreen"></span>
+      </div>
+
+      <div class="mac-popup-title">Trades – Full Preview</div>
+
+      <button
+        type="button"
+        id="tradesPopupCloseRight"
+        class="mac-popup-close-btn"
+        aria-label="Close">
+        ✕
+      </button>
+    </div>
+
+    <div class="mac-popup-body">
+      <div id="tradesPopupContent"></div>
+    </div>
+  </div>
+</div>
+
+
+
+
+
+
+<div class="mac-popup-backdrop" id="tradesPopupBackdrop">
+  <div class="mac-popup">
+    <div class="mac-popup-header">
+      <div class="mac-traffic-lights"></div>
+      <div class="mac-popup-title">Trades – Full Preview</div>
+      <button id="tradesPopupCloseBtn" class="mac-popup-close-btn">×</button>
+    </div>
+    <div class="mac-popup-body">
+      <div id="tradesPopupMount"></div>
+    </div>
+  </div>
+</div>
+
+<script src="js/commodity-excel-engine.js" defer></script>
+  <script src="js/cj-live-clock.js" defer></script>
+
+<script defer src="js/mobile-nav-fix.js"></script>
+</body>
+</html>
