@@ -8,3 +8,37 @@
 @media(prefers-reduced-motion:reduce){*,*::before,*::after{transition:none!important;scroll-behavior:auto!important}}
 
 .auth-message.success{background:rgba(220,252,231,.9);border-color:#86efac;color:#166534}.auth-submit:disabled{opacity:.7;cursor:wait;transform:none}
+
+
+
+.auth-role-switch {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+  margin-top: 22px;
+}
+
+.auth-role-btn {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  padding: 12px 14px;
+  border: 1px solid rgba(124, 58, 237, 0.25);
+  border-radius: 12px;
+  background: rgba(255, 255, 255, 0.65);
+  color: #6d28d9;
+  text-decoration: none;
+  font-weight: 700;
+  font-size: 14px;
+  transition: transform 0.2s ease, background 0.2s ease;
+}
+
+.auth-role-btn:hover {
+  background: rgba(124, 58, 237, 0.1);
+  transform: translateY(-1px);
+}
+
+.auth-role-btn:focus-visible {
+  outline: 3px solid rgba(124, 58, 237, 0.45);
+  outline-offset: 3px;
+}
