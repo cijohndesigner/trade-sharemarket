@@ -4,7 +4,7 @@
  * Signup: username + password + confirm password
  * Login: username + password
  * Approval: pending / approved / rejected / suspended
- * Password reset: email recovery link or administrator-managed username reset.
+ * Password reset: recovery link + new password page
  *
  * Supabase Auth uses a hidden synthetic email for username login.
  * Never expose the service-role key or store plaintext passwords.
@@ -20,7 +20,10 @@
 
   function msg(text, type = "error") {
     const el = $("[data-auth-message]");
-    if (!el) return;
+    if (!el) {
+      console.log(text);
+      return;
+    }
 
     el.textContent = text;
     el.className = "auth-message show " + type;
@@ -28,17 +31,12 @@
   }
 
   function pageName() {
-    return location.pathname
-      .replace(/\/+$/, "")
-      .split("/")
-      .pop()
-      .toLowerCase();
+    return location.pathname.replace(/\/+$/, "")
+      .split("/").pop().toLowerCase();
   }
 
   function normalizeUsername(value) {
-    const username = String(value || "")
-      .trim()
-      .toLowerCase();
+    const username = String(value || "").trim().toLowerCase();
 
     if (!/^[a-z0-9_.-]{3,32}$/.test(username)) {
       throw new Error(
@@ -64,30 +62,17 @@
     const page = pageName();
     const has = name => !!$('[name="' + name + '"]', form);
 
-    if (page === "auth-update-password.html") {
-      return "update";
-    }
+    if (page === "auth-update-password.html") return "update";
+    if (page === "auth-signup.html") return "signup";
+    if (page === "auth-forgot-password.html") return "forgot";
+    if (page === "auth-login.html") return "login";
 
-    if (page === "auth-signup.html" ||
-        (has("username") && has("password") &&
-         has("confirmPassword"))) {
+    if (has("email") && !has("password")) return "forgot";
+    if (has("username") && has("password") && has("confirmPassword")) {
       return "signup";
     }
-
-    if (page === "auth-forgot-password.html" ||
-        (has("email") && !has("password")) ||
-        (has("username") && !has("password"))) {
-      return "forgot";
-    }
-
-    if (page === "auth-login.html" ||
-        (has("username") && has("password"))) {
-      return "login";
-    }
-
-    if (has("password") && has("confirmPassword")) {
-      return "update";
-    }
+    if (has("username") && has("password")) return "login";
+    if (has("password") && has("confirmPassword")) return "update";
 
     return "unknown";
   }
@@ -101,24 +86,16 @@
 
     if (error) throw error;
 
-    return String(data?.status || "pending")
-      .trim()
-      .toLowerCase();
+    return String(data?.status || "pending").trim().toLowerCase();
   }
 
   async function handleSignup(auth, formData) {
-    const username = normalizeUsername(
-      formData.get("username")
-    );
+    const username = normalizeUsername(formData.get("username"));
     const password = String(formData.get("password") || "");
-    const confirm = String(
-      formData.get("confirmPassword") || ""
-    );
+    const confirm = String(formData.get("confirmPassword") || "");
 
     if (password.length < 10) {
-      throw new Error(
-        "Use a password with at least 10 characters."
-      );
+      throw new Error("Use a password with at least 10 characters.");
     }
 
     if (password !== confirm) {
@@ -137,7 +114,14 @@
       }
     });
 
-    if (error) throw error;
+    if (error) {
+      if (/already registered|already been registered|user already exists/i.test(error.message || "")) {
+        throw new Error(
+          "This username may already exist. Ask the administrator to check Supabase Authentication → Users before registering again."
+        );
+      }
+      throw error;
+    }
 
     if (!data?.user) {
       throw new Error("Supabase did not return a user.");
@@ -161,7 +145,6 @@
 
     if (accessError) {
       await auth.auth.signOut();
-
       throw new Error(
         "Account created, but the approval record could not be saved. Check member_access RLS policies. " +
         accessError.message
@@ -181,14 +164,10 @@
   }
 
   async function handleLogin(auth, formData) {
-    const username = normalizeUsername(
-      formData.get("username")
-    );
+    const username = normalizeUsername(formData.get("username"));
     const password = String(formData.get("password") || "");
 
-    if (!password) {
-      throw new Error("Enter your password.");
-    }
+    if (!password) throw new Error("Enter your password.");
 
     const { data, error } = await auth.auth.signInWithPassword({
       email: usernameEmail(username),
@@ -205,9 +184,7 @@
       }
 
       if (reason.includes("invalid login credentials")) {
-        throw new Error(
-          "Username or password is incorrect."
-        );
+        throw new Error("Username or password is incorrect.");
       }
 
       throw error;
@@ -219,7 +196,6 @@
       status = await getApprovalStatus(data.user.id);
     } catch (e) {
       await auth.auth.signOut();
-
       throw new Error(
         "Could not verify approval status. Check member_access and its SELECT policy. " +
         (e.message || "")
@@ -235,9 +211,7 @@
         suspended: "Your account is suspended."
       };
 
-      throw new Error(
-        messages[status] || "This account is not approved."
-      );
+      throw new Error(messages[status] || "This account is not approved.");
     }
 
     location.href = "dashboard.html";
@@ -247,13 +221,11 @@
     const emailValue = formData.get("email");
 
     if (emailValue === null) {
-      const username = normalizeUsername(
-        formData.get("username")
-      );
+      const username = normalizeUsername(formData.get("username"));
 
       msg(
         "Password reset for '" + username +
-        "' must be handled by the CJ Cruz administrator. Verify the member's identity before resetting the password.",
+        "' is managed by the CJ Cruz administrator. Verify the member's identity before resetting the password.",
         "success"
       );
       return;
@@ -270,10 +242,9 @@
       location.href
     ).href;
 
-    const { error } = await auth.auth.resetPasswordForEmail(
-      email,
-      { redirectTo }
-    );
+    const { error } = await auth.auth.resetPasswordForEmail(email, {
+      redirectTo
+    });
 
     if (error) throw error;
 
@@ -288,35 +259,33 @@
 
     try {
       const url = new URL(location.href);
-      const params = new URLSearchParams(
-        url.hash.replace(/^#/, "")
-      );
-
+      const params = new URLSearchParams(url.hash.replace(/^#/, ""));
       const code = url.searchParams.get("code");
       const accessToken = params.get("access_token");
       const refreshToken = params.get("refresh_token");
+      const type = params.get("type");
+
+      if (params.get("error_description")) {
+        throw new Error("The reset link is invalid or expired.");
+      }
 
       if (code) {
-        const { error } =
-          await auth.auth.exchangeCodeForSession(code);
-
+        const { error } = await auth.auth.exchangeCodeForSession(code);
         if (error) throw error;
 
         url.searchParams.delete("code");
-        history.replaceState(
-          {},
-          document.title,
-          url.pathname + url.search + url.hash
-        );
+        history.replaceState({}, document.title,
+          url.pathname + url.search + url.hash);
 
-        msg(
-          "Reset link verified. Enter your new password.",
-          "success"
-        );
+        msg("Reset link verified. Enter your new password.", "success");
         return;
       }
 
       if (accessToken && refreshToken) {
+        if (type && type !== "recovery") {
+          throw new Error("This is not a password-recovery link.");
+        }
+
         const { error } = await auth.auth.setSession({
           access_token: accessToken,
           refresh_token: refreshToken
@@ -324,28 +293,18 @@
 
         if (error) throw error;
 
-        history.replaceState(
-          {},
-          document.title,
-          url.pathname + url.search
-        );
+        history.replaceState({}, document.title,
+          url.pathname + url.search);
 
-        msg(
-          "Reset link verified. Enter your new password.",
-          "success"
-        );
+        msg("Reset link verified. Enter your new password.", "success");
         return;
       }
 
       const { data, error } = await auth.auth.getSession();
-
       if (error) throw error;
 
       if (data?.session) {
-        msg(
-          "Recovery session found. Enter your new password.",
-          "success"
-        );
+        msg("Recovery session found. Enter your new password.", "success");
       } else {
         msg(
           "No valid reset session was found. Request a fresh reset email and open its newest link."
@@ -353,7 +312,6 @@
       }
     } catch (error) {
       console.error("Recovery initialisation failed:", error);
-
       msg(
         "The reset link is invalid or expired. Request a fresh reset email."
       );
@@ -362,22 +320,17 @@
 
   async function handleUpdate(auth, formData) {
     const password = String(formData.get("password") || "");
-    const confirm = String(
-      formData.get("confirmPassword") || ""
-    );
+    const confirm = String(formData.get("confirmPassword") || "");
 
     if (password.length < 10) {
-      throw new Error(
-        "Use a password with at least 10 characters."
-      );
+      throw new Error("Use a password with at least 10 characters.");
     }
 
     if (password !== confirm) {
       throw new Error("The passwords do not match.");
     }
 
-    const { data, error: sessionError } =
-      await auth.auth.getSession();
+    const { data, error: sessionError } = await auth.auth.getSession();
 
     if (sessionError) throw sessionError;
 
@@ -387,31 +340,34 @@
       );
     }
 
-    const { error } = await auth.auth.updateUser({
-      password
-    });
+    const { error } = await auth.auth.updateUser({ password });
 
     if (error) throw error;
 
-    await auth.auth.signOut();
-
     msg(
-      "Password updated successfully. You can now sign in.",
+      "Password updated successfully. Redirecting to sign in…",
       "success"
     );
 
+    // Redirect even if sign-out has a temporary issue.
+    try {
+      await auth.auth.signOut();
+    } catch (e) {
+      console.warn("Sign-out after password reset failed:", e);
+    }
+
     setTimeout(() => {
-      location.href = "auth-login.html";
-    }, 1800);
+      window.location.replace(
+        new URL("auth-login.html", location.href).href
+      );
+    }, 1500);
   }
 
   async function submit(form) {
     const auth = client();
 
     if (!auth) {
-      msg(
-        "Supabase is not configured. Check js/supabase-config.js."
-      );
+      msg("Supabase is not configured. Check js/supabase-config.js.");
       return;
     }
 
@@ -442,13 +398,9 @@
     } catch (error) {
       console.error("Authentication error:", error);
 
-      const message = String(
-        error?.message || "Something went wrong."
-      );
+      const message = String(error?.message || "Something went wrong.");
 
-      if (
-        /email signups are disabled|signups not allowed|email provider.*disabled/i.test(message)
-      ) {
+      if (/email signups are disabled|signups not allowed|email provider.*disabled/i.test(message)) {
         msg(
           "Enable the Email provider in Supabase → Authentication → Sign In / Providers. For username signup, turn Confirm email OFF."
         );
@@ -458,8 +410,7 @@
     } finally {
       if (button) {
         button.disabled = false;
-        button.textContent =
-          button.dataset.originalText || "Continue";
+        button.textContent = button.dataset.originalText || "Continue";
       }
     }
   }
