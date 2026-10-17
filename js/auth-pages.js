@@ -1,38 +1,25 @@
 
-/*
- * CJ Cruz Trade Tracker — Authentication
- * Login: email or username
- * Signup: username + password + confirmation
- * Approval: pending / approved / rejected / suspended
- * Recovery: Supabase email recovery + password update
- *
- * Requires:
- *   window.CJ_SUPABASE
- *   window.CJ_AUTH_EMAIL_DOMAIN
- *
- * Never put a Supabase service-role key in browser code.
- */
-
+/* CJ Cruz Trade Tracker — Member and Admin Authentication */
 (function () {
   "use strict";
 
-  const $ = (selector, root = document) =>
-    root.querySelector(selector);
-
+  const $ = (selector, root = document) => root.querySelector(selector);
   const client = () => window.CJ_SUPABASE;
 
-  const LOGIN_PAGE = "auth-login.html";
-  const UPDATE_PAGE = "auth-update-password.html";
-  const SIGNUP_PAGE = "auth-signup.html";
-  const DASHBOARD_PAGE = "dashboard.html";
+  const LOGIN = "auth-login.html";
+  const UPDATE = "auth-update-password.html";
+  const DASHBOARD = "dashboard.html";
+  const ADMIN_PAGE = "admin-members.html";
+
+  const isAdminMode = () =>
+    new URLSearchParams(location.search).get("mode") === "admin";
 
   function pageName() {
     return location.pathname.split("/").pop().toLowerCase();
   }
 
-  function showMessage(text, type = "error") {
+  function message(text, type = "error") {
     const el = $("[data-auth-message]");
-
     if (!el) {
       console.log(text);
       return;
@@ -44,44 +31,39 @@
     el.setAttribute("aria-live", "polite");
   }
 
-  function normalizeUsername(value) {
-    const username = String(value || "").trim().toLowerCase();
-
-    if (!/^[a-z0-9_.-]{3,32}$/.test(username)) {
-      throw new Error(
-        "Username must be 3–32 characters using letters, numbers, dots, underscores or hyphens."
-      );
-    }
-
-    return username;
-  }
-
   function usernameEmail(username) {
-    const domain = String(
-      window.CJ_AUTH_EMAIL_DOMAIN || ""
-    ).trim().toLowerCase();
+    const domain = String(window.CJ_AUTH_EMAIL_DOMAIN || "")
+      .trim().toLowerCase();
 
     if (!domain) {
-      throw new Error(
-        "Authentication configuration is missing CJ_AUTH_EMAIL_DOMAIN."
-      );
+      throw new Error("Missing CJ_AUTH_EMAIL_DOMAIN in supabase-config.js.");
     }
 
-    return username + "@" + domain;
+    return username.toLowerCase() + "@" + domain;
   }
 
   function validEmail(value) {
     return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value);
   }
 
-  function detectForm(form) {
+  function normalizeUsername(value) {
+    const username = String(value || "").trim().toLowerCase();
+
+    if (!/^[a-z0-9_.-]{3,32}$/.test(username)) {
+      throw new Error("Enter a valid username.");
+    }
+
+    return username;
+  }
+
+  function formType(form) {
     const page = pageName();
     const has = name => !!$('[name="' + name + '"]', form);
 
-    if (page === UPDATE_PAGE) return "update";
-    if (page === SIGNUP_PAGE) return "signup";
+    if (page === UPDATE) return "update";
+    if (page === "auth-signup.html") return "signup";
     if (page === "auth-forgot-password.html") return "forgot";
-    if (page === LOGIN_PAGE) return "login";
+    if (page === LOGIN) return "login";
 
     if (has("confirmPassword") && has("username")) return "signup";
     if (has("confirmPassword") && has("password")) return "update";
@@ -91,8 +73,20 @@
     return "unknown";
   }
 
-  async function approvalStatus(userId) {
-    const { data, error } = await client()
+  async function isAdmin(auth) {
+    const { data, error } = await auth.rpc("is_app_admin");
+
+    if (error) {
+      throw new Error(
+        "Could not verify administrator permissions. Check the is_app_admin() function."
+      );
+    }
+
+    return data === true;
+  }
+
+  async function getStatus(auth, userId) {
+    const { data, error } = await auth
       .from("member_access")
       .select("status")
       .eq("user_id", userId)
@@ -100,33 +94,100 @@
 
     if (error) throw error;
 
-    return String(data?.status || "pending")
-      .trim()
-      .toLowerCase();
+    return String(data?.status || "pending").toLowerCase();
   }
 
-  function approvalMessage(status) {
-    const messages = {
-      pending: "Your account is waiting for administrator approval.",
-      rejected: "Your access request was rejected.",
-      suspended: "Your account is suspended."
-    };
+  async function login(auth, formData) {
+    const entered = String(
+      formData.get("username") || formData.get("email") || ""
+    ).trim();
 
-    return messages[status] ||
-      "Your account is not approved for access.";
+    const password = String(formData.get("password") || "");
+
+    if (!entered || !password) {
+      throw new Error("Enter your username/email and password.");
+    }
+
+    // Gmail login works for accounts registered with their real Gmail.
+    // Username login uses the configured synthetic email.
+    const email = entered.includes("@")
+      ? entered.toLowerCase()
+      : usernameEmail(normalizeUsername(entered));
+
+    if (!validEmail(email)) {
+      throw new Error("Enter a valid email address or username.");
+    }
+
+    const { data, error } = await auth.auth.signInWithPassword({
+      email,
+      password
+    });
+
+    if (error) {
+      if (/invalid login credentials/i.test(error.message || "")) {
+        throw new Error("Username/email or password is incorrect.");
+      }
+
+      if (/email not confirmed/i.test(error.message || "")) {
+        throw new Error("Your account email is not confirmed.");
+      }
+
+      throw error;
+    }
+
+    let admin;
+
+    try {
+      admin = await isAdmin(auth);
+    } catch (err) {
+      await auth.auth.signOut();
+      throw err;
+    }
+
+    if (isAdminMode()) {
+      if (!admin) {
+        await auth.auth.signOut();
+        throw new Error("Admin access denied. This account is not an authorized administrator.");
+      }
+
+      location.replace(ADMIN_PAGE);
+      return;
+    }
+
+    // Do not let an administrator enter through the normal member login.
+    if (admin) {
+      await auth.auth.signOut();
+      throw new Error("This is an administrator account. Please use Admin Login.");
+    }
+
+    const status = await getStatus(auth, data.user.id);
+
+    if (status !== "approved") {
+      await auth.auth.signOut();
+
+      const messages = {
+        pending: "Your account is waiting for administrator approval.",
+        rejected: "Your access request was rejected.",
+        suspended: "Your account is suspended."
+      };
+
+      throw new Error(messages[status] || "Your account is not approved.");
+    }
+
+    location.replace(DASHBOARD);
   }
 
-  async function handleSignup(auth, formData) {
+  async function signup(auth, formData) {
     const username = normalizeUsername(formData.get("username"));
     const password = String(formData.get("password") || "");
-    const confirm = String(formData.get("confirmPassword") || "");
+    const confirmPassword = String(formData.get("confirmPassword") || "");
 
     if (password.length < 10) {
       throw new Error("Use a password with at least 10 characters.");
     }
 
-    if (password !== confirm) {
-      throw new Error("The passwords do not match.");
+    if (password !== confirmPassword) {
+      throw new Error("Passwords do not match.");
     }
 
     const { data, error } = await auth.auth.signUp({
@@ -141,23 +202,12 @@
       }
     });
 
-    if (error) {
-      if (/already registered|already been registered|user already exists/i.test(error.message || "")) {
-        throw new Error(
-          "This username may already exist. Ask the administrator to check the existing account."
-        );
-      }
-
-      throw error;
-    }
-
-    if (!data?.user) {
-      throw new Error("Supabase did not return a user.");
-    }
+    if (error) throw error;
+    if (!data?.user) throw new Error("Supabase did not return a user.");
 
     if (!data.session) {
-      showMessage(
-        "The account may have been created, but email confirmation or provider settings prevented a session. Ask the administrator to check Supabase before registering again."
+      message(
+        "Account creation may have succeeded, but no session was created. Ask the administrator to check Supabase email-confirmation settings."
       );
       return;
     }
@@ -173,122 +223,29 @@
 
     if (accessError) {
       await auth.auth.signOut();
-
       throw new Error(
-        "The account was created, but its approval record could not be saved. Ask the administrator to check member_access policies. " +
+        "Account created, but the approval record could not be saved. " +
         accessError.message
       );
     }
 
     await auth.auth.signOut();
-
-    showMessage(
-      "Account created successfully. Please wait for administrator approval.",
-      "success"
-    );
+    message("Account created. Wait for administrator approval.", "success");
 
     setTimeout(() => {
-      window.location.assign(
-        new URL(LOGIN_PAGE, location.href).href
-      );
-    }, 1600);
+      location.replace(LOGIN);
+    }, 1500);
   }
 
-  async function handleLogin(auth, formData) {
-    const enteredValue = String(
-      formData.get("username") ||
-      formData.get("email") ||
-      ""
-    ).trim();
-
-    const password = String(formData.get("password") || "");
-
-    if (!enteredValue) {
-      throw new Error("Enter your username or Gmail address.");
-    }
-
-    if (!password) {
-      throw new Error("Enter your password.");
-    }
-
-    /*
-     * If the member enters a real email address, use it directly.
-     * Otherwise use the configured synthetic email.
-     *
-     * IMPORTANT:
-     * Username-only login for an account registered with a different
-     * real email requires a secure username-to-email lookup backend.
-     */
-    let email;
-
-    if (enteredValue.includes("@")) {
-      email = enteredValue.toLowerCase();
-
-      if (!validEmail(email)) {
-        throw new Error("Enter a valid email address.");
-      }
-    } else {
-      email = usernameEmail(normalizeUsername(enteredValue));
-    }
-
-    const { data, error } = await auth.auth.signInWithPassword({
-      email,
-      password
-    });
-
-    if (error) {
-      const reason = String(error.message || "").toLowerCase();
-
-      if (reason.includes("email not confirmed")) {
-        throw new Error(
-          "This account's email is not confirmed. Ask the administrator to check the account."
-        );
-      }
-
-      if (reason.includes("invalid login credentials")) {
-        throw new Error(
-          "Login failed. For the existing Gmail account, enter the registered Gmail address and its current password."
-        );
-      }
-
-      throw error;
-    }
-
-    let status;
-
-    try {
-      status = await approvalStatus(data.user.id);
-    } catch (err) {
-      await auth.auth.signOut();
-
-      throw new Error(
-        "Login succeeded, but approval could not be verified. Ask the administrator to check member_access SELECT permissions."
-      );
-    }
-
-    if (status !== "approved") {
-      await auth.auth.signOut();
-      throw new Error(approvalMessage(status));
-    }
-
-    window.location.assign(
-      new URL(DASHBOARD_PAGE, location.href).href
-    );
-  }
-
-  async function handleForgot(auth, formData) {
-    const email = String(
-      formData.get("email") || ""
-    ).trim().toLowerCase();
+  async function forgotPassword(auth, formData) {
+    const email = String(formData.get("email") || "")
+      .trim().toLowerCase();
 
     if (!validEmail(email)) {
       throw new Error("Enter your registered Gmail address.");
     }
 
-    const redirectTo = new URL(
-      UPDATE_PAGE,
-      location.href
-    ).href;
+    const redirectTo = new URL(UPDATE, location.href).href;
 
     const { error } = await auth.auth.resetPasswordForEmail(email, {
       redirectTo
@@ -296,62 +253,49 @@
 
     if (error) throw error;
 
-    showMessage(
-      "If this address is registered, a password-reset email will arrive. Open the newest link to continue.",
+    message(
+      "If this email is registered, a reset link will be sent. Open the newest email.",
       "success"
     );
   }
 
   async function initialiseRecovery(auth) {
-    if (pageName() !== UPDATE_PAGE) return;
+    if (pageName() !== UPDATE) return;
 
     try {
       const url = new URL(location.href);
-      const hashParams = new URLSearchParams(
-        url.hash.replace(/^#/, "")
-      );
-
+      const hash = new URLSearchParams(url.hash.replace(/^#/, ""));
       const code = url.searchParams.get("code");
-      const accessToken = hashParams.get("access_token");
-      const refreshToken = hashParams.get("refresh_token");
-      const type = hashParams.get("type");
+      const accessToken = hash.get("access_token");
+      const refreshToken = hash.get("refresh_token");
+      const type = hash.get("type");
 
       if (
         url.searchParams.has("error") ||
-        hashParams.has("error") ||
-        hashParams.has("error_description")
+        hash.has("error") ||
+        hash.has("error_description")
       ) {
-        throw new Error(
-          "This reset link is invalid or expired. Request a new email."
-        );
+        throw new Error("Reset link invalid or expired. Request a fresh email.");
       }
 
       if (code) {
-        const { error } =
-          await auth.auth.exchangeCodeForSession(code);
-
+        const { error } = await auth.auth.exchangeCodeForSession(code);
         if (error) throw error;
 
         url.searchParams.delete("code");
-
         history.replaceState(
           {},
           document.title,
           url.pathname + url.search + url.hash
         );
 
-        showMessage(
-          "Reset link verified. Enter your new password.",
-          "success"
-        );
+        message("Reset link verified. Enter your new password.", "success");
         return;
       }
 
       if (accessToken && refreshToken) {
         if (type && type !== "recovery") {
-          throw new Error(
-            "This link is not a password-recovery link."
-          );
+          throw new Error("This is not a password recovery link.");
         }
 
         const { error } = await auth.auth.setSession({
@@ -361,89 +305,64 @@
 
         if (error) throw error;
 
-        history.replaceState(
-          {},
-          document.title,
-          url.pathname + url.search
-        );
-
-        showMessage(
-          "Reset link verified. Enter your new password.",
-          "success"
-        );
+        history.replaceState({}, document.title, url.pathname + url.search);
+        message("Reset link verified. Enter your new password.", "success");
         return;
       }
 
       const { data, error } = await auth.auth.getSession();
-
       if (error) throw error;
 
       if (data?.session) {
-        showMessage(
-          "Recovery session found. Enter your new password.",
-          "success"
-        );
+        message("Recovery session found. Enter your new password.", "success");
       } else {
-        showMessage(
-          "No valid reset session was found. Request a fresh reset email and open its newest link."
-        );
+        message("No valid reset session. Request a fresh reset email.");
       }
-    } catch (error) {
-      console.error("Password recovery initialisation failed:", error);
-      showMessage(error.message || "Could not verify the reset link.");
+    } catch (err) {
+      console.error("Recovery error:", err);
+      message(err.message || "Could not verify the reset link.");
     }
   }
 
-  async function handleUpdate(auth, formData) {
+  async function updatePassword(auth, formData) {
     const password = String(formData.get("password") || "");
-    const confirm = String(formData.get("confirmPassword") || "");
+    const confirmPassword = String(formData.get("confirmPassword") || "");
 
     if (password.length < 10) {
       throw new Error("Use a password with at least 10 characters.");
     }
 
-    if (password !== confirm) {
-      throw new Error("The passwords do not match.");
+    if (password !== confirmPassword) {
+      throw new Error("Passwords do not match.");
     }
 
-    const { data, error: sessionError } =
-      await auth.auth.getSession();
-
+    const { data, error: sessionError } = await auth.auth.getSession();
     if (sessionError) throw sessionError;
 
     if (!data?.session) {
-      throw new Error(
-        "Your reset session is missing or expired. Request a fresh reset email and open its newest link."
-      );
+      throw new Error("Reset session missing or expired. Request a fresh reset email.");
     }
 
     const { error } = await auth.auth.updateUser({ password });
-
     if (error) throw error;
 
-    showMessage(
-      "Password updated successfully. Returning to sign in…",
-      "success"
-    );
+    message("Password updated. Returning to sign in…", "success");
 
+    // The reset session is not an admin grant.
     setTimeout(() => {
-      window.location.replace(
-        new URL(LOGIN_PAGE, location.href).href
-      );
-    }, 1400);
+      location.replace(LOGIN);
+    }, 1500);
   }
 
-  async function submitForm(form) {
+  async function submit(form) {
     const auth = client();
 
     if (!auth) {
-      showMessage(
-        "Supabase is not configured. Check js/supabase-config.js."
-      );
+      message("Supabase is not configured. Check js/supabase-config.js.");
       return;
     }
 
-    const type = detectForm(form);
+    const type = formType(form);
     const formData = new FormData(form);
     const button = $('button[type="submit"]', form);
     const originalText = button?.textContent || "Continue";
@@ -454,22 +373,14 @@
     }
 
     try {
-      if (type === "signup") {
-        await handleSignup(auth, formData);
-      } else if (type === "login") {
-        await handleLogin(auth, formData);
-      } else if (type === "forgot") {
-        await handleForgot(auth, formData);
-      } else if (type === "update") {
-        await handleUpdate(auth, formData);
-      } else {
-        throw new Error(
-          "Could not identify this form. Check the page filename and input names."
-        );
-      }
-    } catch (error) {
-      console.error("Authentication error:", error);
-      showMessage(error.message || "Something went wrong.");
+      if (type === "login") await login(auth, formData);
+      else if (type === "signup") await signup(auth, formData);
+      else if (type === "forgot") await forgotPassword(auth, formData);
+      else if (type === "update") await updatePassword(auth, formData);
+      else throw new Error("Could not identify this authentication form.");
+    } catch (err) {
+      console.error("Authentication error:", err);
+      message(err.message || "Something went wrong.");
     } finally {
       if (button) {
         button.disabled = false;
@@ -481,18 +392,27 @@
   document.addEventListener("DOMContentLoaded", () => {
     const auth = client();
 
-    if (auth) {
-      initialiseRecovery(auth);
+    if (auth) initialiseRecovery(auth);
+
+    // Change the sign-in heading when Admin Login mode is active.
+    if (pageName() === LOGIN && isAdminMode()) {
+      const heading = $("h1");
+      const eyebrow = $(".auth-eyebrow");
+      const intro = $(".auth-intro");
+
+      if (heading) heading.textContent = "Administrator sign in";
+      if (eyebrow) eyebrow.textContent = "✦ Secure admin access";
+      if (intro) intro.textContent =
+        "Sign in with an authorized administrator account.";
     }
 
     document.querySelectorAll("[data-auth-form]").forEach(form => {
       if (form.dataset.authHandlerAttached === "true") return;
-
       form.dataset.authHandlerAttached = "true";
 
       form.addEventListener("submit", event => {
         event.preventDefault();
-        submitForm(form);
+        submit(form);
       });
     });
   });
