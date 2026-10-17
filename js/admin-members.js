@@ -143,10 +143,8 @@
       }
 
       $("#membersBody").innerHTML = members.map((member) => {
-        const currentStatus = String(member.status || "pending")
-          .toLowerCase() === "suspended"
-          ? "blocked"
-          : String(member.status || "pending").toLowerCase();
+       const currentStatus = String(member.status || "pending")
+  .toLowerCase();
 
         const options = statusOptions.map(([value, label]) =>
           `<option value="${value}" ${value === currentStatus ? "selected" : ""}>${label}</option>`
