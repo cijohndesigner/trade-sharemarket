@@ -1,37 +1,44 @@
 
 /*
  * CJ Cruz Trade Tracker — Authentication
- *
  * Signup: username + password + confirm password
  * Login: username + password
  * Approval: pending / approved / rejected / suspended
- * Recovery: username-based administrator reset, or email reset
- *           when the forgot-password form explicitly has an email field.
+ * Password reset: email recovery link or administrator-managed username reset.
  *
- * Supabase Auth internally maps usernames to synthetic email addresses.
- * Never store plaintext passwords or expose the service-role key.
+ * Supabase Auth uses a hidden synthetic email for username login.
+ * Never expose the service-role key or store plaintext passwords.
  */
 
 (function () {
   "use strict";
 
-  const $ = (selector, root = document) => root.querySelector(selector);
+  const $ = (selector, root = document) =>
+    root.querySelector(selector);
+
   const client = () => window.CJ_SUPABASE;
 
   function msg(text, type = "error") {
     const el = $("[data-auth-message]");
-    if (!el) {
-      console[type === "error" ? "error" : "log"](text);
-      return;
-    }
+    if (!el) return;
 
     el.textContent = text;
     el.className = "auth-message show " + type;
     el.setAttribute("role", "status");
   }
 
+  function pageName() {
+    return location.pathname
+      .replace(/\/+$/, "")
+      .split("/")
+      .pop()
+      .toLowerCase();
+  }
+
   function normalizeUsername(value) {
-    const username = String(value || "").trim().toLowerCase();
+    const username = String(value || "")
+      .trim()
+      .toLowerCase();
 
     if (!/^[a-z0-9_.-]{3,32}$/.test(username)) {
       throw new Error(
@@ -53,51 +60,33 @@
       String(window.CJ_AUTH_EMAIL_DOMAIN).trim().toLowerCase();
   }
 
-  /*
-   * Detect the page using both its URL and the actual form fields.
-   * This supports a login page served at the website root.
-   */
   function detectPage(form) {
-    const path = window.location.pathname
-      .replace(/\/+$/, "")
-      .split("/")
-      .pop()
-      .toLowerCase();
+    const page = pageName();
+    const has = name => !!$('[name="' + name + '"]', form);
 
-    const has = (name) =>
-      !!$('[name="' + name + '"]', form);
+    if (page === "auth-update-password.html") {
+      return "update";
+    }
 
-    if (path === "auth-signup.html" ||
-        (has("username") && has("confirmPassword") && has("password"))) {
+    if (page === "auth-signup.html" ||
+        (has("username") && has("password") &&
+         has("confirmPassword"))) {
       return "signup";
     }
 
-    if (path === "auth-update-password.html") {
-      return "update-password";
+    if (page === "auth-forgot-password.html" ||
+        (has("email") && !has("password")) ||
+        (has("username") && !has("password"))) {
+      return "forgot";
     }
 
-    if (path === "auth-forgot-password.html") {
-      return "forgot-password";
-    }
-
-    if (path === "auth-login.html") {
-      return "login";
-    }
-
-    /*
-     * The supplied forgot-password HTML uses an email field.
-     * The username recovery form uses a username field instead.
-     */
-    if (has("email") && !has("password")) {
-      return "forgot-password";
-    }
-
-    if (has("username") && has("password")) {
+    if (page === "auth-login.html" ||
+        (has("username") && has("password"))) {
       return "login";
     }
 
     if (has("password") && has("confirmPassword")) {
-      return "update-password";
+      return "update";
     }
 
     return "unknown";
@@ -117,105 +106,84 @@
       .toLowerCase();
   }
 
-  async function savePendingAccess(userId, username) {
-    const { error } = await client()
-      .from("member_access")
-      .insert({
-        user_id: userId,
-        username: username,
-        status: "pending",
-        updated_at: new Date().toISOString()
-      });
-
-    if (error) {
-      if (error.code === "23505" ||
-          /duplicate key|already exists/i.test(error.message || "")) {
-        throw new Error(
-          "An account or username record already exists. Ask the administrator to check member_access. Do not register again."
-        );
-      }
-
-      throw new Error(
-        "The authentication account was created, but its pending approval record could not be saved. Check the member_access INSERT policy. Details: " +
-        error.message
-      );
-    }
-  }
-
   async function handleSignup(auth, formData) {
-    const username = normalizeUsername(formData.get("username"));
+    const username = normalizeUsername(
+      formData.get("username")
+    );
     const password = String(formData.get("password") || "");
-    const confirmPassword =
-      String(formData.get("confirmPassword") || "");
+    const confirm = String(
+      formData.get("confirmPassword") || ""
+    );
 
     if (password.length < 10) {
-      throw new Error("Use a password with at least 10 characters.");
+      throw new Error(
+        "Use a password with at least 10 characters."
+      );
     }
 
-    if (password !== confirmPassword) {
+    if (password !== confirm) {
       throw new Error("The passwords do not match.");
     }
 
     const { data, error } = await auth.auth.signUp({
       email: usernameEmail(username),
-      password: password,
+      password,
       options: {
         data: {
-          username: username,
+          username,
           display_name: username,
           full_name: username
         }
       }
     });
 
-    if (error) {
-      const reason = String(error.message || "").toLowerCase();
-
-      if (
-        reason.includes("already registered") ||
-        reason.includes("already been registered") ||
-        reason.includes("user already exists")
-      ) {
-        throw new Error(
-          "This username may already be registered. Ask the administrator to check Supabase Authentication → Users before trying again."
-        );
-      }
-
-      throw error;
-    }
+    if (error) throw error;
 
     if (!data?.user) {
-      throw new Error("Supabase did not return a user. Please try again.");
+      throw new Error("Supabase did not return a user.");
     }
 
     if (!data.session) {
       msg(
-        "The account was created, but Supabase did not start a session. The pending approval record may not have been saved. Do not register again. Ask the administrator to check the existing account and email confirmation settings."
+        "The account may have been created, but no session was started. Do not register again. Ask the administrator to check the existing account and email confirmation settings."
       );
       return;
     }
 
-    try {
-      await savePendingAccess(data.user.id, username);
-    } catch (error) {
+    const { error: accessError } = await auth
+      .from("member_access")
+      .insert({
+        user_id: data.user.id,
+        username,
+        status: "pending",
+        updated_at: new Date().toISOString()
+      });
+
+    if (accessError) {
       await auth.auth.signOut();
-      throw error;
+
+      throw new Error(
+        "Account created, but the approval record could not be saved. Check member_access RLS policies. " +
+        accessError.message
+      );
     }
 
     await auth.auth.signOut();
 
     msg(
-      "Account created successfully. Your status is Pending until the administrator approves it.",
+      "Account created. Your status is Pending until the administrator approves it.",
       "success"
     );
 
-    window.setTimeout(() => {
-      window.location.href = "auth-login.html";
+    setTimeout(() => {
+      location.href = "auth-login.html";
     }, 1800);
   }
 
   async function handleLogin(auth, formData) {
-    const username = normalizeUsername(formData.get("username"));
+    const username = normalizeUsername(
+      formData.get("username")
+    );
     const password = String(formData.get("password") || "");
 
     if (!password) {
@@ -224,7 +192,7 @@
 
     const { data, error } = await auth.auth.signInWithPassword({
       email: usernameEmail(username),
-      password: password
+      password
     });
 
     if (error) {
@@ -232,29 +200,29 @@
 
       if (reason.includes("email not confirmed")) {
         throw new Error(
-          "This account is not confirmed in Supabase. Ask the administrator to review the existing account. Do not register again."
+          "This account is not confirmed. Ask the administrator to check the existing account in Supabase."
         );
       }
 
       if (reason.includes("invalid login credentials")) {
         throw new Error(
-          "Username or password is incorrect. Check the registered username and password. Remember, usernames are matched without regard to letter case."
+          "Username or password is incorrect."
         );
       }
 
-      throw new Error(error.message || "Sign-in failed.");
+      throw error;
     }
 
     let status;
 
     try {
       status = await getApprovalStatus(data.user.id);
-    } catch (error) {
+    } catch (e) {
       await auth.auth.signOut();
 
       throw new Error(
-        "Could not verify member approval. Check the member_access table and its SELECT policy. " +
-        (error?.message || "")
+        "Could not verify approval status. Check member_access and its SELECT policy. " +
+        (e.message || "")
       );
     }
 
@@ -263,94 +231,164 @@
 
       const messages = {
         pending: "Your account is waiting for administrator approval.",
-        rejected: "Your access request was rejected. Contact the administrator.",
-        suspended: "Your account is suspended. Contact the administrator."
+        rejected: "Your access request was rejected.",
+        suspended: "Your account is suspended."
       };
 
       throw new Error(
-        messages[status] ||
-        "This account is not approved for access."
+        messages[status] || "This account is not approved."
       );
     }
 
-    window.location.href = "dashboard.html";
+    location.href = "dashboard.html";
   }
 
-  async function handleForgotPassword(auth, formData) {
-    /*
-     * Username-only recovery: no reset email can be sent because the
-     * synthetic email is hidden from the member.
-     */
-    const usernameValue = formData.get("username");
+  async function handleForgot(auth, formData) {
+    const emailValue = formData.get("email");
 
-    if (usernameValue !== null) {
-      const username = normalizeUsername(usernameValue);
+    if (emailValue === null) {
+      const username = normalizeUsername(
+        formData.get("username")
+      );
 
       msg(
-        "Password reset for username '" + username +
-        "' is managed by the CJ Cruz administrator. Contact the administrator to verify your identity and reset your password securely. Never share your current password.",
+        "Password reset for '" + username +
+        "' must be handled by the CJ Cruz administrator. Verify the member's identity before resetting the password.",
         "success"
       );
       return;
     }
 
-    /*
-     * Optional email-based recovery for the existing HTML form that
-     * explicitly asks for a registered email address.
-     */
-    const email = String(formData.get("email") || "").trim();
+    const email = String(emailValue || "").trim();
 
     if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
       throw new Error("Enter a valid registered email address.");
     }
 
-    const { error } = await auth.auth.resetPasswordForEmail(email, {
-      redirectTo: new URL(
-        "auth-update-password.html",
-        window.location.href
-      ).href
-    });
+    const redirectTo = new URL(
+      "auth-update-password.html",
+      location.href
+    ).href;
 
-    if (error) {
-      throw new Error("Could not request the reset email: " + error.message);
-    }
+    const { error } = await auth.auth.resetPasswordForEmail(
+      email,
+      { redirectTo }
+    );
+
+    if (error) throw error;
 
     msg(
-      "If this email is registered, a password-reset message will be sent. Open the newest email and follow its instructions.",
+      "If the email is registered, a reset link will be sent. Open the newest email in this browser.",
       "success"
     );
   }
 
-  async function handleUpdatePassword(auth, formData) {
+  async function initialiseRecovery(auth) {
+    if (pageName() !== "auth-update-password.html") return;
+
+    try {
+      const url = new URL(location.href);
+      const params = new URLSearchParams(
+        url.hash.replace(/^#/, "")
+      );
+
+      const code = url.searchParams.get("code");
+      const accessToken = params.get("access_token");
+      const refreshToken = params.get("refresh_token");
+
+      if (code) {
+        const { error } =
+          await auth.auth.exchangeCodeForSession(code);
+
+        if (error) throw error;
+
+        url.searchParams.delete("code");
+        history.replaceState(
+          {},
+          document.title,
+          url.pathname + url.search + url.hash
+        );
+
+        msg(
+          "Reset link verified. Enter your new password.",
+          "success"
+        );
+        return;
+      }
+
+      if (accessToken && refreshToken) {
+        const { error } = await auth.auth.setSession({
+          access_token: accessToken,
+          refresh_token: refreshToken
+        });
+
+        if (error) throw error;
+
+        history.replaceState(
+          {},
+          document.title,
+          url.pathname + url.search
+        );
+
+        msg(
+          "Reset link verified. Enter your new password.",
+          "success"
+        );
+        return;
+      }
+
+      const { data, error } = await auth.auth.getSession();
+
+      if (error) throw error;
+
+      if (data?.session) {
+        msg(
+          "Recovery session found. Enter your new password.",
+          "success"
+        );
+      } else {
+        msg(
+          "No valid reset session was found. Request a fresh reset email and open its newest link."
+        );
+      }
+    } catch (error) {
+      console.error("Recovery initialisation failed:", error);
+
+      msg(
+        "The reset link is invalid or expired. Request a fresh reset email."
+      );
+    }
+  }
+
+  async function handleUpdate(auth, formData) {
     const password = String(formData.get("password") || "");
-    const confirmPassword =
-      String(formData.get("confirmPassword") || "");
+    const confirm = String(
+      formData.get("confirmPassword") || ""
+    );
 
     if (password.length < 10) {
-      throw new Error("Use a password with at least 10 characters.");
+      throw new Error(
+        "Use a password with at least 10 characters."
+      );
     }
 
-    if (password !== confirmPassword) {
+    if (password !== confirm) {
       throw new Error("The passwords do not match.");
     }
 
-    /*
-     * Supabase must have an authenticated recovery session here.
-     * Never allow a normal visitor to change an arbitrary user's password.
-     */
-    const { data: sessionData, error: sessionError } =
+    const { data, error: sessionError } =
       await auth.auth.getSession();
 
     if (sessionError) throw sessionError;
 
-    if (!sessionData?.session) {
+    if (!data?.session) {
       throw new Error(
-        "No valid password-reset session was found. Request a fresh reset link or contact the administrator."
+        "No valid reset session. Open the newest reset email link or request a fresh one."
       );
     }
 
     const { error } = await auth.auth.updateUser({
-      password: password
+      password
     });
 
     if (error) throw error;
@@ -362,8 +400,8 @@
       "success"
     );
 
-    window.setTimeout(() => {
-      window.location.href = "auth-login.html";
+    setTimeout(() => {
+      location.href = "auth-login.html";
     }, 1800);
   }
 
@@ -372,7 +410,7 @@
 
     if (!auth) {
       msg(
-        "Supabase is not configured. Check js/supabase-config.js and its publishable key."
+        "Supabase is not configured. Check js/supabase-config.js."
       );
       return;
     }
@@ -388,38 +426,31 @@
     }
 
     try {
-      switch (page) {
-        case "signup":
-          await handleSignup(auth, formData);
-          break;
-
-        case "login":
-          await handleLogin(auth, formData);
-          break;
-
-        case "forgot-password":
-          await handleForgotPassword(auth, formData);
-          break;
-
-        case "update-password":
-          await handleUpdatePassword(auth, formData);
-          break;
-
-        default:
-          throw new Error(
-            "Could not identify this authentication form. Check that it contains data-auth-form and the correct input names."
-          );
+      if (page === "signup") {
+        await handleSignup(auth, formData);
+      } else if (page === "login") {
+        await handleLogin(auth, formData);
+      } else if (page === "forgot") {
+        await handleForgot(auth, formData);
+      } else if (page === "update") {
+        await handleUpdate(auth, formData);
+      } else {
+        throw new Error(
+          "Could not identify this form. Check the page filename and input names."
+        );
       }
     } catch (error) {
+      console.error("Authentication error:", error);
+
       const message = String(
-        error?.message || "Something went wrong. Please try again."
+        error?.message || "Something went wrong."
       );
 
       if (
         /email signups are disabled|signups not allowed|email provider.*disabled/i.test(message)
       ) {
         msg(
-          "Enable the Email provider in Supabase → Authentication → Sign In / Providers. For username-based signup, turn Confirm email OFF."
+          "Enable the Email provider in Supabase → Authentication → Sign In / Providers. For username signup, turn Confirm email OFF."
         );
       } else {
         msg(message);
@@ -434,18 +465,18 @@
   }
 
   document.addEventListener("DOMContentLoaded", function () {
-    const forms = document.querySelectorAll("[data-auth-form]");
+    const auth = client();
 
-    forms.forEach(function (form) {
-      /*
-       * Prevent accidental duplicate listeners if this script is
-       * included more than once.
-       */
+    if (auth) {
+      initialiseRecovery(auth);
+    }
+
+    document.querySelectorAll("[data-auth-form]").forEach(form => {
       if (form.dataset.authHandlerAttached === "true") return;
 
       form.dataset.authHandlerAttached = "true";
 
-      form.addEventListener("submit", function (event) {
+      form.addEventListener("submit", event => {
         event.preventDefault();
         submit(form);
       });
