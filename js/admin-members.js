@@ -10,11 +10,11 @@
   const client = () => window.CJ_SUPABASE;
 
   const statusOptions = [
-    ["pending", "Pending"],
-    ["approved", "Approved"],
-    ["blocked", "Blocked"],
-    ["rejected", "Rejected"]
-  ];
+  ["pending", "Pending"],
+  ["approved", "Approved"],
+  ["rejected", "Rejected"],
+  ["suspended", "Suspended"]
+];
 
   const escapeHtml = (value) =>
     String(value ?? "").replace(/[&<>"']/g, (ch) => ({
