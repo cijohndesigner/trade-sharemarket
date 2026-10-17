@@ -1,0 +1,38 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="theme-color" content="#7c3aed">
+<title>Create Account | CJ Cruz Trade Tracker</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="css/auth-glass.css">
+</head>
+<body class="auth-page">
+<div class="auth-orb one" aria-hidden="true"></div><div class="auth-orb two" aria-hidden="true"></div>
+<main class="auth-wrap">
+<div class="auth-brand"><div class="auth-logo" aria-hidden="true">CJ</div><div><div class="auth-brand-name">CJ Cruz Trade Tracker</div><div class="auth-brand-sub">Your personal trading workspace</div></div></div>
+<section class="auth-card" aria-labelledby="page-title">
+<span class="auth-eyebrow"><span aria-hidden="true">✦</span> Join the workspace</span>
+<h1 id="page-title">Create your account</h1>
+<p class="auth-intro">Choose a username and a strong password. Your access will need admin approval.</p>
+<div class="auth-message" data-auth-message></div>
+<form data-auth-form>
+<label class="auth-field"><span>Username</span><input class="auth-input" name="username" autocomplete="username" placeholder="Choose a username" required minlength="3" maxlength="32" pattern="[A-Za-z0-9_.-]+" title="Use letters, numbers, dots, underscores or hyphens"></label>
+<label class="auth-field"><span>Password</span><input class="auth-input" type="password" name="password" autocomplete="new-password" placeholder="At least 10 characters" required minlength="10"></label>
+<label class="auth-field"><span>Confirm password</span><input class="auth-input" type="password" name="confirmPassword" autocomplete="new-password" placeholder="Enter the password again" required minlength="10"></label>
+<div class="auth-note">New accounts will be marked <strong>Pending</strong>. You will not be able to access trading records until the administrator approves your account.</div>
+<div class="auth-divider"></div>
+<button class="auth-submit" type="submit">Create account <span aria-hidden="true">→</span></button>
+</form>
+<p class="auth-switch">Already registered? <a class="auth-link" href="auth-login.html">Sign in</a></p>
+</section>
+<p class="auth-foot">Protected access for approved members.<br>Keep your trading credentials private.</p>
+</main>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="js/supabase-config.js"></script>
+<script src="js/auth-pages.js" defer></script>
+</body>
+</html>
