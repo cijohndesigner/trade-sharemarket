@@ -1,0 +1,584 @@
+<!DOCTYPE html>
+
+<html lang="en">
+<head>
+<meta charset="utf-8"/>
+<title>cj cruz – personal trade tracker</title>
+<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet"/>
+<link href="css/styles.css" rel="stylesheet"/>
+<link href="css/style_2.css" rel="stylesheet"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" rel="stylesheet"/>
+<style>
+
+
+.calc-title {
+  font-size: 14px;
+  font-weight: 600;
+  margin-bottom: 10px;
+  color: #f5c542;
+}
+
+.calc-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 8px;
+}
+
+.calc-row label {
+  font-size: 12px;
+  color: #ff5f57;
+}
+
+.calc-row select {
+  background: #dbd4d4;
+  color: #1f1e1e;
+  border: 1px solid #dbd4d4;
+  border-radius: 6px;
+  padding: 4px 6px;
+  font-size: 12px;
+}
+
+.calc-divider {
+  height: 1px;
+  background: #333;
+  margin: 10px 0;
+}
+
+.calc-output {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 8px;
+}
+
+.calc-output div {
+  background: #edeef1;
+  padding: 6px;
+  border-radius: 6px;
+  text-align: center;
+}
+
+.calc-output span {
+  display: block;
+  font-size: 11px;
+  color: #000000;
+}
+
+.calc-output strong {
+  font-size: 13px;
+  color: #fff;
+}
+/* ============================= */
+
+
+</style>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+
+
+  <link rel="stylesheet" href="css/cj-live-clock.css">
+  <link rel="stylesheet" href="css/cj-pro-calendar.css">
+</head>
+<body>
+<div class="container-fluid">
+<div class="layout-shell d-flex min-vh-20">
+<aside class="sidebar glass-sidebar d-flex flex-column">
+<button type="button" id="mobileSidebarClose" class="mobile-sidebar-close" aria-label="Close navigation menu" title="Close menu">×</button>
+<!-- Hamburger-to-Arrow Toggle (injected) -->
+<button aria-label="Toggle sidebar" class="hamburger-arrow" id="sidebarToggleArrow">
+<span class="bar top"></span>
+<span class="bar middle"></span>
+<span class="bar bottom"></span>
+</button>
+<div class="sidebar-profile text-center mb-3">
+<div class="sidebar-avatar-wrapper mx-auto" id="profileAvatarWrapper">
+<div class="sidebar-avatar-ring">
+<img alt="Profile photo" id="profileImage" src="data:image/svg+xml;utf8,%3Csvg%20xmlns%3D%22http%3A//www.w3.org/2000/svg%22%20width%3D%22128%22%20height%3D%22128%22%3E%0A%3Cdefs%3E%0A%20%20%3ClinearGradient%20id%3D%22g%22%20x1%3D%220%22%20x2%3D%221%22%20y1%3D%220%22%20y2%3D%221%22%3E%0A%20%20%20%20%3Cstop%20offset%3D%220%25%22%20stop-color%3D%22%236366f1%22/%3E%0A%20%20%20%20%3Cstop%20offset%3D%22100%25%22%20stop-color%3D%22%23a855f7%22/%3E%0A%20%20%3C/linearGradient%3E%0A%3C/defs%3E%0A%3Crect%20width%3D%22128%22%20height%3D%22128%22%20fill%3D%22url%28%23g%29%22/%3E%0A%3Ctext%20x%3D%2250%25%22%20y%3D%2254%25%22%20text-anchor%3D%22middle%22%20font-size%3D%2252%22%20fill%3D%22%23f9fafb%22%0A%20%20%20%20%20%20font-family%3D%22system-ui%2C%20-apple-system%2C%20BlinkMacSystemFont%2C%20sans-serif%22%3ECJ%3C/text%3E%0A%3C/svg%3E"/>
+</div>
+</div>
+<div class="sidebar-name" id="profileName">Trader</div>
+<div class="sidebar-profile-hint">Click name or photo to change</div>
+<input accept="image/*" hidden="" id="profileImageInput" type="file"/>
+</div>
+<nav class="nav flex-column sidebar-nav">
+<a class="nav-link " href="index.html">
+<span class="icon"><i class="fa-solid fa-chart-line"></i></span>
+<span>Dashboard</span>
+</a>
+<a class="nav-link" href="add_plan_trade.html">
+<span class="icon"><i class="fa-solid fa-plus"></i></span>
+<span>Add/ Plan Trade</span>
+</a>
+
+<a class="nav-link" href="market_snapshot.html">
+<span class="icon"><i class="fa-solid fa-chart-area"></i></span>
+<span>Market Snapshot</span>
+</a>
+<a class="nav-link" href="depsit_withdrawl.html">
+<span class="icon"><i class="fa-solid fa-wallet"></i></span>
+<span>Deposits / Withdrawals</span>
+</a>
+<a class="nav-link" href="fx_mcx_gap.html">
+<span class="icon"><i class="fa-solid fa-arrows-left-right"></i></span>
+<span>FX → MCX Gap Mapper</span>
+</a>
+<a class="nav-link active" href="calculations.html">
+<span class="icon"><i class="fa-solid fa-newspaper"></i></span>
+<span>Calculations</span>
+</a>
+</nav>
+<div class="sidebar-footer">
+<div class="sidebar-backup-box">
+<div class="backup-label">Backup / Restore</div>
+<button class="btn btn-outline btn-xs w-100 mb-1" id="backupJsonBtn">
+          ⬇ Backup JSON
+        </button>
+<button class="btn btn-outline btn-xs w-100" id="restoreJsonBtn">
+          ⬆ Restore JSON
+        </button>
+<input accept="application/json" hidden="" id="restoreJsonInput" type="file"/>
+<div class="version-text">local storage</div>
+</div>
+</div>
+</aside><div class="sidebar-backdrop" aria-hidden="true"></div></div>
+<div class="flex-grow-1 app-main-scroll">
+<div class="mac-window">
+<div class="mac-titlebar">
+<button id="menuToggle" class="mobile-menu-btn" type="button" aria-label="Open navigation menu" aria-expanded="false"><span aria-hidden="true">☰</span></button>
+
+<div class="mac-traffic-lights">
+<span class="mac-dot mac-close"></span>
+<span class="mac-dot mac-minimize"></span>
+<span class="mac-dot mac-fullscreen"></span>
+</div>
+
+<div class="mac-title">cj cruz – Calculations</div>
+<div id="cjLiveClockDisplay" role="timer" aria-label="Current time in India" aria-live="off">--:--:-- -- IST</div>
+<div aria-label="Theme appearance selector" class="mac-theme-toggle">
+<button class="mac-theme-btn" id="themeLightBtn" type="button">☀️ Light</button>
+<button class="mac-theme-btn" id="themeDarkBtn" type="button">🌙 Dark</button>
+<button class="mac-theme-btn" id="themeAutoBtn" type="button">🧠 Auto</button>
+</div>
+</div>
+<div class="mac-window-content">
+<div class="app-shell">
+
+
+<!-- Top balances -->
+
+<main class="main-grid">
+
+
+
+<!-- ROW 5: Gold / Silver Morning News (full width) -->
+<section class="card full-width-section" id="section-metals-news">
+
+<div class="card" id="commodityNewTools">
+
+  <!-- HEADER -->
+  <div class="card-header-row">
+    <div class="commodity-header">
+      <div class="card-title">Calculation for gold</div>
+      <div class="form-row" style="min-width:140px;padding-left: 10px;" >
+        <input type="date" id="todayDate" name="todayDate">
+		<script>
+  // Function to format the current date as 'YYYY-MM-DD' for HTML input
+  function getTodayDateString() {
+    const today = new Date();
+    // getMonth() returns 0-11, so add 1 to get the correct month number
+    const month = (today.getMonth() + 1).toString().padStart(2, '0');
+    const day = today.getDate().toString().padStart(2, '0');
+    const year = today.getFullYear();
+    
+    return `${year}-${month}-${day}`;
+  }
+
+  // Set the value of the input field to today's date
+  document.getElementById('todayDate').value = getTodayDateString();
+</script>
+		
+		
+      </div>
+    </div>
+
+    <div class="commodity-topbar">
+	<div class="commodity-header-right">
+      <div class="filter-group">
+        <button class="filter-chip active" type="button" id="commodityBuyBtn">Buy</button>
+        <button class="filter-chip" type="button" id="commoditySellBtn">Sell</button>
+      </div>
+
+
+    </div>
+  </div>
+  </div>
+<div class="commodity-divider"></div>
+  <div class="main-grid">
+
+    <!-- LEFT : INPUTS -->
+    <div class="column-stack">
+      <div class="" style="font-color:black; font-weight:bold; font-size:12px">4-Day High / Low Inputs</div>
+
+      <div class="form-grid">
+        <div class="form-row"><label>Day 1 High</label><input type="number" id="day1High"></div>
+        <div class="form-row"><label>Day 1 Low</label><input type="number" id="day1Low"></div>
+
+        <div class="form-row"><label>Day 2 High</label><input type="number" id="day2High"></div>
+        <div class="form-row"><label>Day 2 Low</label><input type="number" id="day2Low"></div>
+
+        <div class="form-row"><label>Day 3 High</label><input type="number" id="day3High"></div>
+        <div class="form-row"><label>Day 3 Low</label><input type="number" id="day3Low"></div>
+
+        <div class="form-row"><label>Day 4 High</label><input type="number" id="day4High"></div>
+        <div class="form-row"><label>Day 4 Low</label><input type="number" id="day4Low"></div>
+      </div>
+    </div>
+
+    <!-- RIGHT : CALCULATED IMPACT -->
+    <div class="column-stack">
+      <div class="" style="font-color:black; font-weight:bold; font-size:12px">Calculated Impact</div>
+
+      
+      <div class="impact-list">
+<div class="impact-row">
+          <span class="impact-label">Entry Price: </span>
+          <span class="impact-value"><span id="outEntry">—</span></span>
+        </div>
+        <div class="impact-row">
+          <span class="impact-label">Target: </span>
+          <span class="impact-value"><span id="outCommodityTarget">—</span></span>
+        </div>
+        <div class="impact-row">
+          <span class="impact-label">Stop Loss 1: </span>
+          <span class="impact-value"><span id="outSL1">—</span></span>
+        </div>
+		 <div class="impact-row">
+          <span class="impact-label">Stop Loss 2: </span>
+          <span class="impact-value"><span id="outSL2">—</span></span>
+        </div>
+        <div class="impact-row">
+          <span class="impact-label">2-Day HH / LL: </span>
+          <span class="impact-value"><span id="out2DHH">—</span> / <span id="out2DLL">—</span></span>
+        </div>
+        <div class="impact-row">
+          <span class="impact-label">4-Day HH / LL: </span>
+          <span class="impact-value"><span id="out4DHH">—</span> / <span id="out4DLL">—</span></span>
+        </div>
+       
+      </div>
+<div class="cj-pro-calc-action"><button type="button" id="cjProGoldCalculateBtn" class="cj-pro-calculate-btn">✦ Calculate Gold &amp; View Results</button></div>
+
+    
+    </div>
+
+  </div>
+</div>
+</section>
+
+
+
+
+
+<section class="card full-width-section" id="section-metals-news">
+
+<div class="card" id="commodityNewTools">
+
+  <!-- HEADER -->
+  <div class="card-header-row">
+    <div class="commodity-header">
+      <div class="card-title">Calculation for Silver</div>
+      <div class="form-row" style="min-width:140px;padding-left: 10px;" >
+	  
+	  
+	  <input type="date" id="silvmCalcDate">
+<span id="silvmDateWarning" class="muted"></span>
+	  
+	  
+        
+		<script>
+  // Function to format the current date as 'YYYY-MM-DD' for HTML input
+  function getTodayDateString() {
+    const today = new Date();
+    // getMonth() returns 0-11, so add 1 to get the correct month number
+    const month = (today.getMonth() + 1).toString().padStart(2, '0');
+    const day = today.getDate().toString().padStart(2, '0');
+    const year = today.getFullYear();
+    
+    return `${year}-${month}-${day}`;
+  }
+
+  // Set the value of the input field to today's date
+  document.getElementById('silvmCalcDate').value = getTodayDateString();
+</script>
+		
+		
+      </div>
+    </div>
+
+
+ <div class="commodity-topbar">
+	<div class="commodity-header-right">
+      <div class="filter-group">
+        <button class="filter-chip active" type="button" id="silvmBuyBtn">Buy</button>
+        <button class="filter-chip" type="button" id="silvmSellBtn">Sell</button>
+      </div>
+
+
+    </div>
+  </div>
+
+
+   
+  </div>
+<div class="commodity-divider"></div>
+  <div class="main-grid">
+
+    <!-- LEFT : INPUTS -->
+    <div class="column-stack">
+      <div class="" style="font-color:black; font-weight:bold; font-size:12px">4-Day High / Low Inputs</div>
+
+      <div class="form-grid">
+        <div class="form-row"><label>Day 1 High</label><input type="number" id="silvm_h1"></div>
+        <div class="form-row"><label>Day 1 Low</label><input type="number" id="silvm_l1"></div>
+
+        <div class="form-row"><label>Day 2 High</label><input type="number" id="silvm_h2"></div>
+        <div class="form-row"><label>Day 2 Low</label><input type="number" id="silvm_l2"></div>
+
+        <div class="form-row"><label>Day 3 High</label><input type="number" id="silvm_h3"></div>
+        <div class="form-row"><label>Day 3 Low</label><input type="number" id="silvm_l3"></div>
+
+        <div class="form-row"><label>Day 4 High</label><input type="number" id="silvm_h4"></div>
+        <div class="form-row"><label>Day 4 Low</label><input type="number" id="silvm_l4"></div>
+      </div>
+    </div>
+
+    <!-- RIGHT : CALCULATED IMPACT -->
+    <div class="column-stack">
+      <div class="" style="font-color:black; font-weight:bold; font-size:12px">Calculated Impact</div>
+
+      
+      <div class="impact-list">
+<div class="impact-row">
+          <span class="impact-label">Entry Price: </span>
+          <span class="impact-value"><span id="silvm_entry">—</span></span>
+        </div>
+        <div class="impact-row">
+          <span class="impact-label">Target: </span>
+          <span class="impact-value"><span id="silvm_target">—</span></span>
+        </div>
+        <div class="impact-row">
+          <span class="impact-label">Stop Loss 1: </span>
+          <span class="impact-value"><span id="silvm_sl1">—</span></span>
+        </div>
+		 <div class="impact-row">
+          <span class="impact-label">Stop Loss 2: </span>
+          <span class="impact-value"><span id="silvm_sl2">—</span></span>
+        </div>
+        <div class="impact-row">
+          <span class="impact-label">2-Day HH / LL: </span>
+          <span class="impact-value"><span id="silvm_hh2">—</span> / <span id="silvm_ll2">—</span></span>
+        </div>
+        <div class="impact-row">
+          <span class="impact-label">4-Day HH / LL: </span>
+          <span class="impact-value"><span id="silvm_hh4">—</span> / <span id="silvm_ll4">—</span></span>
+        </div>
+       
+      </div>
+<div class="cj-pro-calc-action"><button type="button" id="cjProSilverCalculateBtn" class="cj-pro-calculate-btn">✦ Calculate Silver &amp; View Results</button></div>
+
+    
+    </div>
+
+  </div>
+</div>
+</section>
+
+
+<!-- ROW 4: Equity Curve & Stats (full width) -->
+
+</main>
+<div class="footer-row">
+<div>Data lives only in your browser (localStorage).</div>
+<div class="footer-row-right">
+<button class="btn btn-danger btn-xs" id="resetAllBtn" type="button">Reset all data</button>
+</div>
+</div>
+</div>
+</div>
+</div>
+<div class="cj-pro-modal-backdrop" id="cjProCalcModal" aria-hidden="true"><section class="cj-pro-modal cj-pro-calc-modal" role="dialog" aria-modal="true" aria-labelledby="cjProCalcTitle"><header class="cj-pro-modal-head"><div><span class="cj-pro-eyebrow">CJ CRUZ · CALCULATION SUMMARY</span><h2 id="cjProCalcTitle">Calculation Results</h2><p id="cjProCalcSubtitle">Review your calculated levels</p></div><button type="button" id="cjProCalcClose" aria-label="Close popup">×</button></header><div id="cjProCalcBody" class="cj-pro-calc-result-grid"></div><footer class="cj-pro-modal-foot"><span>Values shown are from the existing calculator</span><button type="button" id="cjProCalcDone">Done</button></footer></section></div>
+<link rel="stylesheet" href="css/cj-pro-upgrades.css"><script defer src="js/cj-pro-calculation-popup.js"></script>
+
+<!-- Chart.js CDN -->
+
+<script defer="" src="js/app.js"></script>
+</div>
+<!-- Trades Calendar: per-day details popup -->
+
+<!-- Balance edit modal (Main / Available / Manual) -->
+<div class="cj-password-backdrop" id="balanceEditBackdrop">
+<div class="cj-password-modal">
+<div class="cj-password-header">
+<div class="cj-password-title" id="balanceEditTitle">Update Balance</div>
+<div class="cj-password-subtitle" id="balanceEditSubtitle">
+        Enter the new value.
+      </div>
+</div>
+<form id="balanceEditForm">
+<label class="cj-password-label" for="balanceEditInput">
+<span id="balanceEditLabelText">New value</span>
+</label>
+<input autocomplete="off" class="cj-password-input" id="balanceEditInput" step="0.01" type="number"/>
+<div class="cj-password-error" id="balanceEditError"></div>
+<div class="cj-password-actions">
+<button class="btn btn-outline btn-sm" id="balanceEditCancel" type="button">
+          Cancel
+        </button>
+<button class="btn btn-primary btn-sm" id="balanceEditSubmit" type="submit">
+          Update
+        </button>
+</div>
+</form>
+</div>
+</div>
+<!-- Password modal for secure actions -->
+<div class="cj-password-backdrop" id="passwordModalBackdrop">
+<div class="cj-password-modal">
+<div class="cj-password-header">
+<div class="cj-password-title" id="passwordModalTitle">Main Balance</div>
+<div class="cj-password-subtitle" id="passwordModalSubtitle">
+        Password required to continue.
+      </div>
+</div>
+<form id="passwordModalForm">
+<label class="cj-password-label" for="passwordModalInput">
+        Enter password
+      </label>
+<div class="cj-password-hint-row">
+<span class="cj-password-hint-label">Password</span>
+<input class="cj-password-view" id="passwordModalView" readonly="" type="text"/>
+<button class="btn btn-outline btn-xs cj-password-copy-btn" id="passwordModalCopy" type="button">
+          Copy
+        </button>
+</div>
+<input autocomplete="off" class="cj-password-input" id="passwordModalInput" type="text"/>
+<div class="cj-password-error" id="passwordModalError"></div>
+<div class="cj-password-actions">
+<button class="btn btn-outline btn-sm" id="passwordModalCancel" type="button">
+          Cancel
+        </button>
+<button class="btn btn-primary btn-sm" id="passwordModalSubmit" type="submit">
+          Confirm
+        </button>
+</div>
+</form>
+</div>
+</div>
+<!-- Daily Inspiration popup (once per day) -->
+
+<div class="cj-toast-container" id="toastContainer"></div>
+<!-- FX → MCX Gap Password Modal -->
+<div class="fx-modal-overlay hidden" id="fxGapPasswordOverlay">
+<div class="fx-modal">
+<div class="fx-modal-header">
+<div class="fx-modal-title">Confirm action</div>
+</div>
+<div class="fx-modal-body">
+<p class="fx-modal-text" id="fxGapPasswordMessage">
+          Clear entire FX → MCX gap history?
+        </p>
+<input class="fx-modal-input" id="fxGapPasswordInput" placeholder="Enter password" type="password"/>
+<div class="fx-modal-error hidden" id="fxGapPasswordError">
+          Incorrect password. Try again.
+        </div>
+</div>
+<div class="fx-modal-footer">
+<button class="btn btn-outline btn-sm" id="fxGapPasswordCancel" type="button">
+          Cancel
+        </button>
+<button class="btn btn-danger btn-sm" id="fxGapPasswordConfirm" type="button">
+          Clear
+        </button>
+</div>
+</div>
+</div>
+
+</div>
+<script>
+  // FX → MCX Gap Mapper: force default date to today on load
+  (function () {
+    const el = document.getElementById("fxMcxDate");
+    if (el && !el.value) {
+      const d = new Date();
+      const y = d.getFullYear();
+      const m = String(d.getMonth() + 1).padStart(2, "0");
+      const da = String(d.getDate()).padStart(2, "0");
+      el.value = `${y}-${m}-${da}`;
+    }
+  })();
+</script>
+
+
+
+<!-- Trades Full Preview Popup (macOS style) -->
+<!-- Trades Full Preview Popup -->
+<div id="tradesPreviewBackdrop" class="mac-popup-backdrop">
+  <div class="mac-popup">
+    <div class="mac-popup-header">
+      <div class="mac-traffic-lights">
+        <span class="mac-dot mac-close" id="tradesPopupClose"></span>
+        <span class="mac-dot mac-minimize"></span>
+        <span class="mac-dot mac-fullscreen"></span>
+      </div>
+
+      <div class="mac-popup-title">Trades – Full Preview</div>
+
+      <button
+        type="button"
+        id="tradesPopupCloseRight"
+        class="mac-popup-close-btn"
+        aria-label="Close">
+        ✕
+      </button>
+    </div>
+
+    <div class="mac-popup-body">
+      <div id="tradesPopupContent"></div>
+    </div>
+  </div>
+</div>
+
+
+
+
+
+
+<div class="mac-popup-backdrop" id="tradesPopupBackdrop">
+  <div class="mac-popup">
+    <div class="mac-popup-header">
+      <div class="mac-traffic-lights"></div>
+      <div class="mac-popup-title">Trades – Full Preview</div>
+      <button id="tradesPopupCloseBtn" class="mac-popup-close-btn">×</button>
+    </div>
+    <div class="mac-popup-body">
+      <div id="tradesPopupMount"></div>
+    </div>
+  </div>
+</div>
+<script src="js/silver_wiring.js"></script>
+<script src="js/commodity-excel-engine.js" defer></script>
+
+
+<!-- Optional intraday gap risk script was not included in the supplied archive. -->
+
+
+
+  <script src="js/cj-live-clock.js" defer></script>
+
+<script defer src="js/mobile-nav-fix.js"></script>
+<script src="js/cj-pro-calendar.js" defer></script>
+</body>
+</html>
+
