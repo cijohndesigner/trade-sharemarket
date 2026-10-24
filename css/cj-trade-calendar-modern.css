@@ -1,0 +1,317 @@
+
+/* ==========================================================
+   CJ CRUZ — MODERN LAVENDER GLASS TRADES CALENDAR
+   Isolated to the Deposits / Withdrawals page calendar.
+   Keeps existing calendar markup, data and JavaScript intact.
+   ========================================================== */
+#section-trade-calendar {
+  position: relative;
+  overflow: hidden;
+  padding: 18px !important;
+  border: 1px solid rgba(139, 124, 255, .22) !important;
+  border-radius: 22px !important;
+  background:
+    radial-gradient(ellipse at 5% 0%, rgba(167, 139, 250, .13), transparent 42%),
+    linear-gradient(145deg, rgba(255,255,255,.78), rgba(246,244,255,.68)) !important;
+  box-shadow: 0 14px 38px rgba(74, 58, 150, .10), inset 0 1px 0 rgba(255,255,255,.8) !important;
+}
+#section-trade-calendar .trade-calendar-header {
+  gap: 12px;
+  margin-bottom: 15px;
+  align-items: center;
+}
+#section-trade-calendar .section-label {
+  letter-spacing: .16em;
+  font-size: .65rem;
+  font-weight: 750;
+  color: #8276ad;
+}
+#section-trade-calendar .card-title {
+  font-size: 1.08rem;
+  font-weight: 750;
+  letter-spacing: -.025em;
+  color: #252044;
+}
+#section-trade-calendar .trade-calendar-month-picker {
+  padding: 5px 7px 5px 11px;
+  gap: 8px;
+  border: 1px solid rgba(139,124,255,.24);
+  border-radius: 14px;
+  background: rgba(255,255,255,.72);
+  box-shadow: 0 3px 12px rgba(74,58,150,.06);
+}
+#section-trade-calendar .trade-calendar-month-picker label {
+  color: #8276ad;
+  font-size: .7rem;
+  font-weight: 700;
+}
+#section-trade-calendar .trade-calendar-month-picker input[type="month"] {
+  min-width: 136px;
+  padding: 6px 9px;
+  border: 1px solid rgba(139,124,255,.30);
+  border-radius: 10px;
+  background: rgba(250,249,255,.95);
+  color: #30245f;
+  font-size: .76rem;
+  font-weight: 650;
+  outline: none;
+}
+#section-trade-calendar .trade-calendar-month-picker input[type="month"]:focus {
+  border-color: #9878ff;
+  box-shadow: 0 0 0 3px rgba(139,92,246,.13);
+}
+#section-trade-calendar > .trade-calendar-legend-item {
+  display: inline-flex;
+  align-items: center;
+  gap: 9px;
+  margin: 0 6px 7px 0;
+  padding: 5px 10px 5px 6px;
+  border: 1px solid rgba(139,124,255,.16);
+  border-radius: 999px;
+  background: rgba(255,255,255,.62);
+  color: #393451;
+  font-size: .72rem;
+  font-weight: 600;
+  box-shadow: 0 3px 10px rgba(63,49,120,.04);
+}
+#section-trade-calendar .trade-calendar-money-tag {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  max-width: 100%;
+  padding: 4px 8px;
+  border-radius: 999px;
+  font-size: .63rem;
+  line-height: 1.25;
+  font-weight: 800;
+  border: 1px solid transparent;
+}
+#section-trade-calendar .trade-calendar-deposit-tag {
+  color: #087a55 !important;
+  background: linear-gradient(135deg, rgba(209,250,229,.98), rgba(167,243,208,.84)) !important;
+  border-color: rgba(52,211,153,.45) !important;
+}
+#section-trade-calendar .trade-calendar-withdrawal-tag {
+  color: #b42342 !important;
+  background: linear-gradient(135deg, rgba(255,228,230,.98), rgba(254,205,211,.84)) !important;
+  border-color: rgba(251,113,133,.40) !important;
+}
+#section-trade-calendar .trade-calendar-legend {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 7px 11px;
+  padding: 9px 10px;
+  margin: 2px 0 11px;
+  border-radius: 13px;
+  border: 1px solid rgba(139,124,255,.13);
+  background: rgba(255,255,255,.42);
+  font-size: .68rem;
+}
+#section-trade-calendar .trade-calendar-legend-item { gap: 5px; }
+#section-trade-calendar .trade-calendar-legend-dot {
+  width: 9px;
+  height: 9px;
+  flex: 0 0 9px;
+  box-shadow: 0 0 0 3px rgba(148,163,184,.07);
+}
+#section-trade-calendar .trade-calendar-weekdays {
+  gap: 5px;
+  margin-bottom: 6px;
+  color: #8982a7;
+  font-size: .68rem;
+  font-weight: 750;
+  letter-spacing: .025em;
+}
+#section-trade-calendar .trade-calendar-weekday {
+  padding: 3px 0;
+}
+#section-trade-calendar .trade-calendar-grid {
+  gap: 5px;
+  font-size: .76rem;
+}
+#section-trade-calendar .trade-calendar-day {
+  min-width: 0;
+  min-height: 78px;
+  padding: 7px 6px 6px;
+  gap: 5px;
+  justify-content: flex-start;
+  border: 1px solid rgba(139,124,255,.17);
+  border-radius: 13px;
+  background: linear-gradient(145deg, rgba(255,255,255,.68), rgba(244,242,255,.46));
+  box-shadow: inset 0 1px 0 rgba(255,255,255,.66);
+  color: #282442;
+  overflow: hidden;
+  transition: transform .17s ease, box-shadow .17s ease, border-color .17s ease, background .17s ease;
+}
+#section-trade-calendar .trade-calendar-day-number {
+  display: flex;
+  align-items: center;
+  justify-content: flex-start;
+  min-height: 18px;
+  font-size: .75rem;
+  line-height: 1.1;
+  font-weight: 750;
+  color: #292445;
+}
+#section-trade-calendar .trade-calendar-day-pl {
+  max-width: 100%;
+  margin-top: 0;
+  color: #6d668b;
+  font-size: .61rem;
+  line-height: 1.3;
+  font-weight: 600;
+  white-space: normal;
+  overflow-wrap: anywhere;
+}
+#section-trade-calendar .trade-calendar-day.has-data {
+  border-style: solid;
+  cursor: pointer;
+}
+#section-trade-calendar .trade-calendar-day.has-data:hover,
+#section-trade-calendar .trade-calendar-day:focus-visible {
+  transform: translateY(-2px);
+  border-color: rgba(139,92,246,.55);
+  box-shadow: 0 8px 18px rgba(91,70,170,.13), inset 0 1px 0 rgba(255,255,255,.8);
+  outline: none;
+}
+#section-trade-calendar .trade-calendar-day-empty {
+  background: rgba(242,240,251,.35);
+  border: 1px dashed rgba(139,124,255,.19);
+  box-shadow: none;
+}
+#section-trade-calendar .trade-calendar-day.buy-day {
+  background: linear-gradient(145deg, rgba(220,252,231,.74), rgba(236,253,245,.68));
+  border-color: rgba(52,211,153,.48);
+}
+#section-trade-calendar .trade-calendar-day.sell-day {
+  background: linear-gradient(145deg, rgba(255,228,230,.76), rgba(255,241,242,.68));
+  border-color: rgba(251,113,133,.48);
+}
+#section-trade-calendar .trade-calendar-day.mixed-day {
+  background: linear-gradient(145deg, rgba(254,249,195,.72), rgba(255,251,235,.68));
+  border-color: rgba(250,204,21,.55);
+}
+#section-trade-calendar .trade-calendar-day-trend-tag {
+  align-self: flex-start;
+  max-width: 100%;
+  padding: 3px 6px;
+  border-radius: 999px;
+  font-size: .58rem;
+  line-height: 1.2;
+  font-weight: 750;
+  overflow-wrap: anywhere;
+}
+#section-trade-calendar .trend-buy { color: #087a55; background: rgba(167,243,208,.72); }
+#section-trade-calendar .trend-sell { color: #b42342; background: rgba(254,205,211,.76); }
+#section-trade-calendar .trend-mixed { color: #946200; background: rgba(253,230,138,.65); }
+
+body.dark-mode #section-trade-calendar {
+  background:
+    radial-gradient(ellipse at 5% 0%, rgba(139,92,246,.17), transparent 42%),
+    linear-gradient(145deg, rgba(20,24,43,.97), rgba(13,18,35,.96)) !important;
+  border-color: rgba(167,139,250,.22) !important;
+  box-shadow: 0 18px 44px rgba(0,0,0,.24), inset 0 1px 0 rgba(255,255,255,.035) !important;
+}
+body.dark-mode #section-trade-calendar .card-title { color: #f0edff; }
+body.dark-mode #section-trade-calendar .section-label { color: #aaa0d4; }
+body.dark-mode #section-trade-calendar .trade-calendar-month-picker {
+  background: rgba(30,27,57,.76);
+  border-color: rgba(167,139,250,.22);
+}
+body.dark-mode #section-trade-calendar .trade-calendar-month-picker input[type="month"] {
+  color: #f2edff;
+  background: rgba(15,23,42,.88);
+  border-color: rgba(167,139,250,.30);
+}
+body.dark-mode #section-trade-calendar > .trade-calendar-legend-item {
+  background: rgba(30,27,57,.65);
+  border-color: rgba(167,139,250,.17);
+  color: #e8e4fa;
+}
+body.dark-mode #section-trade-calendar .trade-calendar-legend {
+  background: rgba(15,23,42,.38);
+  border-color: rgba(167,139,250,.16);
+  color: #bcb6d8;
+}
+body.dark-mode #section-trade-calendar .trade-calendar-weekdays { color: #aaa3ca; }
+body.dark-mode #section-trade-calendar .trade-calendar-day {
+  color: #ece9ff;
+  background: linear-gradient(145deg, rgba(30,34,57,.92), rgba(20,24,43,.92));
+  border-color: rgba(148,163,184,.20);
+  box-shadow: inset 0 1px 0 rgba(255,255,255,.035);
+}
+body.dark-mode #section-trade-calendar .trade-calendar-day-number { color: #f0edff; }
+body.dark-mode #section-trade-calendar .trade-calendar-day-pl { color: #b8b2d2; }
+body.dark-mode #section-trade-calendar .trade-calendar-day-empty {
+  background: rgba(15,23,42,.22);
+  border-color: rgba(148,163,184,.16);
+}
+body.dark-mode #section-trade-calendar .trade-calendar-day.buy-day {
+  background: linear-gradient(145deg, rgba(6,78,59,.50), rgba(6,45,39,.55));
+  border-color: rgba(52,211,153,.40);
+}
+body.dark-mode #section-trade-calendar .trade-calendar-day.sell-day {
+  background: linear-gradient(145deg, rgba(127,29,29,.48), rgba(69,10,10,.48));
+  border-color: rgba(251,113,133,.40);
+}
+body.dark-mode #section-trade-calendar .trade-calendar-day.mixed-day {
+  background: linear-gradient(145deg, rgba(113,63,18,.40), rgba(66,32,6,.42));
+  border-color: rgba(250,204,21,.38);
+}
+body.dark-mode #section-trade-calendar .trade-calendar-day.has-data:hover,
+body.dark-mode #section-trade-calendar .trade-calendar-day:focus-visible {
+  border-color: rgba(167,139,250,.62);
+  box-shadow: 0 8px 20px rgba(0,0,0,.25), 0 0 0 2px rgba(139,92,246,.10);
+}
+@media (max-width: 1100px) {
+  #section-trade-calendar { padding: 15px !important; }
+  #section-trade-calendar .trade-calendar-day { min-height: 68px; padding: 6px 5px; }
+}
+@media (max-width: 700px) {
+  #section-trade-calendar { padding: 13px !important; border-radius: 18px !important; }
+  #section-trade-calendar .trade-calendar-header { align-items: flex-start; flex-direction: column; }
+  #section-trade-calendar .trade-calendar-month-picker { width: 100%; justify-content: space-between; }
+  #section-trade-calendar .trade-calendar-month-picker input[type="month"] { flex: 1; min-width: 0; }
+  #section-trade-calendar .trade-calendar-grid { gap: 3px; }
+  #section-trade-calendar .trade-calendar-day { min-height: 58px; padding: 5px 3px; border-radius: 9px; gap: 4px; }
+  #section-trade-calendar .trade-calendar-day-number { font-size: .7rem; }
+  #section-trade-calendar .trade-calendar-day-pl { font-size: .55rem; }
+  #section-trade-calendar .trade-calendar-money-tag { padding: 3px 5px; font-size: .53rem; }
+  #section-trade-calendar .trade-calendar-day-trend-tag { font-size: .51rem; padding: 2px 4px; }
+  #section-trade-calendar .trade-calendar-legend { gap: 6px 9px; }
+}
+@media (prefers-reduced-motion: reduce) {
+  #section-trade-calendar .trade-calendar-day { transition: none; }
+}
+
+
+/* Custom month/year selector — replaces browser-native type=month popup */
+#section-trade-calendar .cj-month-picker { position: relative; display: flex; align-items: center; gap: 9px; z-index: 20; }
+#section-trade-calendar .cj-month-value { position: absolute; width: 1px; height: 1px; opacity: 0; pointer-events: none; }
+#section-trade-calendar .cj-month-trigger { min-width: 155px; display: inline-flex; align-items: center; justify-content: space-between; gap: 14px; padding: 10px 12px; border: 1px solid rgba(167,139,250,.42); border-radius: 14px; background: rgba(255,255,255,.72); color: #312e54; box-shadow: 0 5px 16px rgba(99,102,241,.08), inset 0 1px 0 rgba(255,255,255,.85); font: inherit; font-size: .78rem; font-weight: 650; cursor: pointer; transition: border-color .18s ease, box-shadow .18s ease, transform .18s ease; }
+#section-trade-calendar .cj-month-trigger:hover, #section-trade-calendar .cj-month-trigger[aria-expanded="true"] { border-color: #a78bfa; box-shadow: 0 7px 20px rgba(124,58,237,.16); }
+#section-trade-calendar .cj-month-trigger:active { transform: scale(.985); }
+#section-trade-calendar .cj-month-trigger i { color: #7c3aed; }
+#section-trade-calendar .cj-month-popup[hidden] { display: none !important; }
+#section-trade-calendar .cj-month-popup { position: absolute; top: calc(100% + 9px); right: 0; width: 264px; padding: 14px; border: 1px solid rgba(167,139,250,.38); border-radius: 19px; background: rgba(250,248,255,.97); color: #302b53; box-shadow: 0 22px 55px rgba(57,42,102,.22), 0 0 0 1px rgba(255,255,255,.7) inset; backdrop-filter: blur(22px); -webkit-backdrop-filter: blur(22px); z-index: 1000; animation: cjMonthPopupIn .16s ease-out; }
+#section-trade-calendar .cj-month-popup-header { display: grid; grid-template-columns: 34px 1fr 34px; align-items: center; gap: 8px; margin-bottom: 13px; }
+#section-trade-calendar .cj-month-popup-header strong { text-align: center; font-size: 1rem; letter-spacing: .04em; }
+#section-trade-calendar .cj-month-nav { width: 34px; height: 34px; border: 1px solid rgba(167,139,250,.3); border-radius: 11px; background: rgba(255,255,255,.82); color: #6d4bd1; cursor: pointer; }
+#section-trade-calendar .cj-month-nav:hover { background: #eee8ff; border-color: #a78bfa; }
+#section-trade-calendar .cj-month-options { display: grid; grid-template-columns: repeat(3,minmax(0,1fr)); gap: 7px; }
+#section-trade-calendar .cj-month-option { padding: 11px 4px; border: 1px solid transparent; border-radius: 11px; background: rgba(255,255,255,.52); color: #51466f; font-size: .8rem; font-weight: 600; cursor: pointer; transition: background .15s ease, color .15s ease, transform .15s ease, border-color .15s ease; }
+#section-trade-calendar .cj-month-option:hover { background: #eee7ff; border-color: rgba(167,139,250,.42); transform: translateY(-1px); }
+#section-trade-calendar .cj-month-option.is-selected { background: linear-gradient(135deg,#8b5cf6,#a78bfa); border-color: #8b5cf6; color: white; box-shadow: 0 5px 13px rgba(124,58,237,.25); }
+#section-trade-calendar .cj-month-popup-footer { display: flex; justify-content: space-between; gap: 10px; border-top: 1px solid rgba(167,139,250,.22); margin-top: 13px; padding-top: 11px; }
+#section-trade-calendar .cj-month-footer-btn { border: 0; background: transparent; color: #7650d7; padding: 5px 7px; border-radius: 8px; font-size: .76rem; font-weight: 700; cursor: pointer; }
+#section-trade-calendar .cj-month-footer-btn:hover { background: rgba(167,139,250,.14); }
+@keyframes cjMonthPopupIn { from { opacity: 0; transform: translateY(-5px) scale(.985); } to { opacity: 1; transform: translateY(0) scale(1); } }
+body.dark-mode #section-trade-calendar .cj-month-trigger { background: rgba(23,20,43,.86); color: #f1edff; border-color: rgba(167,139,250,.4); box-shadow: inset 0 1px 0 rgba(255,255,255,.04); }
+body.dark-mode #section-trade-calendar .cj-month-trigger i { color: #c4b5fd; }
+body.dark-mode #section-trade-calendar .cj-month-popup { background: rgba(20,17,37,.97); border-color: rgba(167,139,250,.38); color: #f1edff; box-shadow: 0 24px 60px rgba(0,0,0,.5), inset 0 1px 0 rgba(255,255,255,.04); }
+body.dark-mode #section-trade-calendar .cj-month-nav { background: rgba(45,38,72,.9); color: #c4b5fd; border-color: rgba(167,139,250,.3); }
+body.dark-mode #section-trade-calendar .cj-month-nav:hover, body.dark-mode #section-trade-calendar .cj-month-option:hover { background: rgba(124,58,237,.24); }
+body.dark-mode #section-trade-calendar .cj-month-option { background: rgba(45,38,72,.5); color: #ddd6fe; }
+body.dark-mode #section-trade-calendar .cj-month-option.is-selected { background: linear-gradient(135deg,#7c3aed,#8b5cf6); color: #fff; }
+@media (max-width: 560px) { #section-trade-calendar .trade-calendar-header { align-items: flex-start; } #section-trade-calendar .cj-month-picker { width: 100%; justify-content: space-between; } #section-trade-calendar .cj-month-trigger { min-width: 0; flex: 1; } #section-trade-calendar .cj-month-popup { width: min(264px, calc(100vw - 48px)); } }
